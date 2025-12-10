@@ -1,0 +1,94 @@
+/* Navbar.css - Calathe navbar reset + styling */
+:root{
+  --nav-bg: #3f2d2a; /* fallback top strip color if you had one */
+  --calathe-bg: #E7F2EF; /* main navbar color (dark navy) */
+  --accent: #000000;     /* mint */
+  --soft: #000000;       /* soft green */
+  --nav-height: 56px;
+}
+
+/* Make navbar full width and visible at top */
+.calathe-navbar {
+  width: 100%;
+  background-color: var(--calathe-bg) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 0 !important;              /* we'll control spacing inside */
+  min-height: var(--nav-height);
+  display: flex;
+  align-items: center;                /* vertical centering */
+  z-index: 1000;
+}
+
+/* Container inside navbar (use fluid) */
+.calathe-navbar .container-fluid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  height: var(--nav-height);
+}
+
+/* Brand (logo + text) */
+.calathe-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.calathe-brand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Site name */
+.calathe-brand span {
+  color: #000000;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* Toggle icon alignment fix (when collapsed) */
+.navbar-toggler {
+  border: none;
+  padding: 6px;
+}
+
+/* Right side group */
+.calathe-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+
+/* Logged in text */
+.calathe-login-text {
+  color: var(--soft);
+  padding-left: 2050px;
+  font-size: 15px;
+}
+
+
+.calathe-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+body {
+  padding-top: var(--nav-height);
+}
+
+
+/* Small screens: make sure items keep centered */
+@media (max-width: 768px) {
+  .calathe-brand span { font-size: 16px; }
+  .calathe-btn { padding: 7px 10px; }
+}

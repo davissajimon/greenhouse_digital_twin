@@ -1,0 +1,353 @@
+/* Home.css - True Center Mode (colors adjusted to new palette) */
+
+/* Theme colors (your palette) */
+:root{
+  --main: #19183B;      /* primary dark */
+  --acc1: #708993;      /* accent / secondary */
+  --acc2: #A1C2BD;      /* muted accent */
+  --acc3: #E7F2EF;      /* pale background */
+  --bg-grad-1: linear-gradient(160deg, var(--acc3) 0%, #ffffff 60%);
+  --card-bg: rgba(255,255,255,0.98);
+}
+
+/* Global sizing & reset */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-grad-1);
+  color: var(--main);
+}
+
+/* Top-level container fills viewport and centers content */
+.home-container {
+  min-height: 100vh;
+  height: 100vh;               /* ensure viewport height */
+  width: 100%;
+  display: flex;
+  align-items: center;         /* vertical centering */
+  justify-content: center;     /* horizontal centering */
+  padding: 24px;
+  gap: 14px;
+}
+
+/* Centered card that contains the dashboard.
+   It limits width and height and becomes scrollable if content exceeds viewport. */
+.center-card {
+  width: 100%;
+  max-width: 1400px;               /* controls max width */
+  max-height: calc(100vh - 48px);  /* keeps some breathing room vertically */
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;                /* hide external overflow; inner content will scroll */
+}
+
+/* Inner scroll area for content (so header stays visually part of card but everything can scroll) */
+.center-card-inner {
+  background: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(25,24,59,0.06);
+  padding: 20px;
+  height: 100%;
+  overflow: auto; /* allow internal scroll when content too tall */
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Header centered */
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 26px;
+  margin: 0;
+  color: var(--main);
+}
+
+.header p {
+  margin: 6px 0 0 0;
+  font-size: 13px;
+  color: var(--acc1);
+}
+
+/* Layout area inside the card */
+.layout {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Left main column */
+.main {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0; /* allow flex children to shrink properly */
+}
+
+/* Model placeholder card */
+.model-box {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(25,24,59,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* responsive placeholder */
+.model-placeholder {
+  height: clamp(220px, 42vh, 560px);
+  border-radius: 10px;
+  border: 2px dashed rgba(25,24,59,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(161,194,189,0.12), rgba(231,242,239,0.06));
+  overflow: hidden;
+}
+
+.model-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  opacity: 0.95;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--acc1);
+}
+
+/* Sensor grid: responsive with auto-fit */
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* Sensor card style */
+.sensor-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96));
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(112,137,147,0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 6px solid rgba(25,24,59,0.06);
+  gap: 8px;
+  min-height: 64px;
+}
+
+/* Left block inside sensor card */
+.sensor-name {
+  font-size: 13px;
+  color: var(--main);
+  margin-bottom: 6px;
+}
+
+.sensor-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--main);
+}
+
+/* ID text */
+.sensor-id {
+  font-size: 11px;
+  color: rgba(25,24,59,0.6);
+  white-space: nowrap;
+}
+
+/* Right-side panel - responsive */
+.right-panel {
+  flex: 0 0 320px;
+  max-width: 38%;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Sensor status box */
+.status-box {
+  background: linear-gradient(180deg, rgba(112,137,147,0.04), rgba(25,24,59,0.01));
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(25,24,59,0.05);
+  border: 1px solid rgba(112,137,147,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.status-box h2 {
+  margin: 0;
+  color: var(--main);
+  font-size: 18px;
+}
+
+.small-label {
+  font-size: 12px;
+  color: var(--acc1);
+  margin-top: 6px;
+}
+
+/* status list */
+.status-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* each status row */
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(25,24,59,0.03);
+}
+
+/* sensor name / value in status item */
+.status-name {
+  font-size: 14px;
+  color: var(--main);
+}
+
+.status-value {
+  font-size: 12px;
+  color: rgba(25,24,59,0.7);
+}
+
+/* toggle look */
+.toggle-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--acc1);
+}
+
+.toggle {
+  width: 38px;
+  height: 20px;
+  background: rgba(25,24,59,0.08);
+  border-radius: 999px;
+  position: relative;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.03);
+}
+
+.toggle.on {
+  background: linear-gradient(90deg, var(--acc1), var(--main));
+}
+
+.toggle::after,
+.toggle.on::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 4px;
+  box-shadow: 0 1px 3px rgba(25,24,59,0.16);
+}
+
+.toggle.on::after {
+  left: auto;
+  right: 4px;
+}
+
+/* footer info */
+.footer-info {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(25,24,59,0.7);
+  border-top: 1px solid rgba(25,24,59,0.04);
+  padding-top: 8px;
+}
+
+/* actions / buttons */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-outline {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid rgba(25,24,59,0.10);
+  color: var(--main);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-solid {
+  width: 100%;
+  padding: 10px 12px;
+  background: linear-gradient(90deg, var(--acc1), var(--main));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-outline:hover { background: rgba(112,137,147,0.04); }
+.btn-solid:hover { opacity: 0.95; }
+
+/* Responsive breakpoints */
+/* Tablet / small desktop */
+@media (max-width: 1100px) {
+  .layout { flex-direction: column; gap: 18px; }
+  .right-panel {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+  .sensor-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .model-placeholder { height: clamp(220px, 36vh, 420px); }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .header h1 { font-size: 20px; }
+  .header p { font-size: 12px; }
+  .sensor-grid { grid-template-columns: 1fr; gap: 10px; }
+  .model-placeholder { height: 36vh; min-height: 200px; }
+  .right-panel { display: block; }
+  .sensor-card { padding: 12px; }
+}

@@ -1,0 +1,10 @@
+{
+  "sensors": [
+    { "id": "t1",  "name": "Temperature",   "min": 18.0,  "max": 35.0,   "unit": "°C",    "round": 1 },
+    { "id": "h1",  "name": "Humidity",      "min": 30.0,  "max": 90.0,   "unit": "%",     "round": 0 },
+    { "id": "s1",  "name": "Soil Moisture", "min": 10.0,  "max": 80.0,   "unit": "%",     "round": 0 },
+    { "id": "l1",  "name": "Light (PAR)",   "min": 0.0,   "max": 2000.0, "unit": "µmol/m²s","round": 0 },
+    { "id": "co1", "name": "CO₂",           "min": 300.0, "max": 1200.0, "unit": "ppm",   "round": 0 },
+    { "id": "p1",  "name": "Pressure",      "min": 990.0, "max": 1038.0, "unit": "hPa",   "round": 0 }
+  ]
+}
