@@ -28,7 +28,7 @@ export default function Simulator() {
   const [message, setMessage] = useState(null);
   const [plant, setPlant] = useState("tomato");
   const [viewMode, setViewMode] = useState('2D'); // Safety Toggle State
-  const simulateEndpoint = "http://127.0.0.1:5000/simulate";
+  const simulateEndpoint = "https://greenhouse-digital-twin.onrender.com/simulate";
 
   function update(key, v) {
     const parsed =
