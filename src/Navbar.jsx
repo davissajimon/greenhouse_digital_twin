@@ -5,25 +5,37 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import "./Navbar.css";
 
-export default function MainNavbar() {
+export default function MainNavbar({ user, onLogout }) {
   const navigate = useNavigate();
 
   return (
-  <Navbar expand="lg" className="calathe-navbar">
-    <Container fluid className="container-fluid">
-      <div className="calathe-brand" onClick={() => navigate("/")}>
-        <img src="/logo.png" alt="logo" />
-        <span>Calathe</span>
-      </div>
+    <Navbar expand="lg" className="calathe-navbar">
+      <Container fluid className="container-fluid">
+        <div className="calathe-brand" onClick={() => navigate("/")}>
+          {/* <img src="/logo.png" alt="logo" /> */}
+          <div style={{ fontSize: '24px' }}>🌱</div>
+          <span>Calathe</span>
+        </div>
 
-      {/* <Navbar.Toggle aria-controls="nav" />
-      <Navbar.Collapse id="nav" className="justify-content-end"> */}
-        {/* <div className="calathe-right"> */}
-          {/* <Button className="calathe-btn" onClick={() => navigate("/Sim")}>Simulate</Button> */}
-          <div className="calathe-login-text">Logged in as: <strong>Guest</strong></div>
-        {/* </div> */}
-      {/* </Navbar.Collapse> */}
-    </Container>
-  </Navbar>
-)
+        {user && (
+          <div className="calathe-right">
+            <div className="calathe-login-text">
+              Logged in as: <strong>{user.name}</strong>
+            </div>
+            <Button
+              variant="outline-dark"
+              size="sm"
+              style={{ marginLeft: '12px', borderColor: 'rgba(0,0,0,0.1)' }}
+              onClick={() => {
+                if (onLogout) onLogout();
+                navigate("/login");
+              }}
+            >
+              Logout
+            </Button>
+          </div>
+        )}
+      </Container>
+    </Navbar>
+  )
 }

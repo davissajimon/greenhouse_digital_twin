@@ -252,28 +252,64 @@ export default function Simulator() {
         <div className="model-box">
           <div className="model-placeholder">
             {/* 3D Digital Twin Viewer */}
-            <div style={{ height: '400px', width: '100%', backgroundColor: '#f9fafb', borderRadius: '0.75rem', overflow: 'hidden', position: 'relative' }}>
+            <div className="model-viewport">
               <Canvas camera={{ position: [0, 1, 4], fov: 50 }}>
 
-                <ambientLight intensity={0.6} />
-                <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
+                {/* Dynamic Lighting based on Temperature */}
+                {(() => {
+                  const t = Number(values.temperature);
+                  let bg = '#e8eaed'; // Default Neutral
+                  let lightInt = 1.2;
+                  let lightColor = '#ffffff';
+
+                  // Heat Stroke (> 40) - Intense Orange/Red Visuals
+                  if (t > 40) {
+                    bg = '#ffccbc';       // Warm Orange Background
+                    lightInt = 2.0;       // Bright Sunshine
+                    lightColor = '#fff3e0'; // Warm Light
+                  }
+                  // Heat Stress (30 - 40) - Warm Yellow
+                  else if (t > 30) {
+                    bg = '#fff9c4';       // Light Yellow
+                    lightInt = 1.5;
+                  }
+                  // Frostbite (<= 0) - Cold Blue/Grey
+                  else if (t <= 0) {
+                    bg = '#b0bec5';       // Cold Grey
+                    lightInt = 0.5;       // Dim
+                    lightColor = '#e3f2fd'; // Icy Blue Light
+                  }
+                  // Chilling (< 10) - Cool Tint
+                  else if (t < 10) {
+                    bg = '#cfd8dc';       // Cool Grey
+                    lightInt = 0.8;
+                  }
+
+                  return (
+                    <>
+                      <color attach="background" args={[bg]} />
+                      <ambientLight intensity={lightInt * 0.6} color={lightColor} />
+                      <directionalLight position={[5, 10, 7.5]} intensity={lightInt} color={lightColor} castShadow />
+                    </>
+                  );
+                })()}
 
                 {/* Suspense is CRITICAL for loading async models */}
                 <Suspense fallback={<Loader />}>
                   <ThreeTomato healthStatus={healthStatus} temperature={values.temperature} />
                 </Suspense>
 
-                <Environment preset="city" />
+                <Environment preset="studio" />
                 <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
 
               </Canvas>
 
               <div style={{ position: 'absolute', top: '1rem', left: '1rem', backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)', fontSize: '0.875rem', fontWeight: 600 }}>
-                Live Twin
+                Simulated Twin
               </div>
             </div>
           </div>
-          <div className="model-note">3D Simulator (placeholder). Replace with your Three.js / WebGL canvas when ready.</div>
+          <div className="model-note">3d simulator from given values</div>
         </div>
       </div>
 

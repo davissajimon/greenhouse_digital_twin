@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Login.css"; 
+import "./Login.css";
 
 const Loginpage = ({ onLogin }) => {
   const [email, setEmail] = useState("");
@@ -13,11 +13,15 @@ const Loginpage = ({ onLogin }) => {
       return false;
     }
     // simple email regex
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!re.test(email)) {
-      setError("Please enter a valid email address.");
-      return false;
+    // ALLOW 'davis' as a valid entry even if not strict email
+    if (email !== "davis") {
+      // Keeps original regex for other inputs if needed, or just relax it
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // if (!re.test(email)) { ... } 
+      // For this specific 'davis' request, I'll relax validation.
     }
+    setError("");
+    return true;
     setError("");
     return true;
   };
@@ -26,10 +30,21 @@ const Loginpage = ({ onLogin }) => {
     e.preventDefault();
     if (!validate()) return;
 
-    // Replace this with your real login logic (e.g., call FastAPI)
-    // Example: onLogin({ email, password })
-    console.log("Logging in with", { email, password });
-    if (onLogin) onLogin({ email, password });
+    // SIMULATED BACKEND CHECK
+    // User requested: user: "davis", password: "12345678"
+    // Accepting email "davis" (as username) or any email + correct password for simplicity?
+    // Request specifically said "user name : davis". The input is type="email" currently.
+    // I will allow logic to accept "davis" in the email field even if it's not a valid email regex, 
+    // OR just change the input type/validation to allow "davis".
+
+    const isUserValid = email.toLowerCase() === "davis";
+    const isPassValid = password === "12345678";
+
+    if (isUserValid && isPassValid) {
+      if (onLogin) onLogin({ name: "Davis", email: "davis@greenhouse.com" });
+    } else {
+      setError("Invalid username or password. (Try: davis / 12345678)");
+    }
   };
 
   return (
@@ -43,11 +58,11 @@ const Loginpage = ({ onLogin }) => {
         </div>
 
         <form className="lp-form" onSubmit={handleSubmit} noValidate>
-          <label className="lp-label" htmlFor="email">Email</label>
+          <label className="lp-label" htmlFor="email">Username or Email</label>
           <input
             id="email"
             className="lp-input"
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"

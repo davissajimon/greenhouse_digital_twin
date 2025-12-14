@@ -228,3 +228,27 @@
   .env-row label{ width: 45%; font-size:13px; }
   .env-row input{ width: 55%; }
 }
+
+/* 3D VIEWPORT RESPONSIVENESS */
+.model-viewport {
+  width: 100%;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+  border: 4px solid #F5F5DC; /* Beige Border */
+  height: 700px; /* Default Desktop */
+}
+
+@media (max-width: 1000px) {
+  .model-viewport {
+    height: 500px; /* Tablet */
+  }
+}
+
+@media (max-width: 600px) {
+  .model-viewport {
+    height: 55vh;   /* Mobile */
+    min-height: 350px;
+  }
+}
