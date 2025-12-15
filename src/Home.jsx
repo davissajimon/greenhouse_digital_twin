@@ -16,7 +16,7 @@ export default function Home() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const pollingRef = useRef(null);
 
-  const backendUrl = "https://greenhouse-digital-twin.onrender.com/sensors"; // change if different
+  const backendUrl = "http://127.0.0.1:5000/sensors"; // change if different
 
   async function fetchSensors() {
     try {

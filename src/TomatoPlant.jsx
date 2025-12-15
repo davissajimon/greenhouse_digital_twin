@@ -4,7 +4,7 @@ import { useSpring, a } from '@react-spring/three'
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils'
 import * as THREE from 'three'
 
-export default function TomatoPlant({ healthStatus = 'healthy', position = [0, -1, 0], ...props }) {
+export default function TomatoPlant({ healthStatus = 'healthy', position = [0, 0, 0], ...props }) {
     // Load assets (Using existing filenames found in public folder)
     const pot = useGLTF('/pot.glb')
     const stem = useGLTF('/stem.glb')
