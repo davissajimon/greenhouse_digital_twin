@@ -2,7 +2,7 @@ import React, { useState, useMemo, Suspense } from "react";
 import "./Simulator.css";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html, useProgress } from "@react-three/drei";
-import { ThreeTomato } from "./components/ThreeTomato";
+import TomatoPlant from "./TomatoPlant";
 import { useNavigate } from "react-router-dom";
 
 function Loader() {
@@ -28,7 +28,7 @@ export default function Simulator() {
   const [message, setMessage] = useState(null);
   const [plant, setPlant] = useState("tomato");
   const [viewMode, setViewMode] = useState('2D'); // Safety Toggle State
-  const simulateEndpoint = "https://greenhouse-digital-twin.onrender.com/simulate";
+  const simulateEndpoint = "http://127.0.0.1:5000/simulate";
 
   function update(key, v) {
     const parsed =
@@ -171,10 +171,13 @@ export default function Simulator() {
   // NEW: 3D Model Logic
   // -------------------------
   const healthStatus = useMemo(() => {
-    const hasFatalOrCritical = liveAlerts.some(a => a.level === 'fatal' || a.level === 'critical');
+    // User requested to only keep temperature setting for 3D model (ignoring humidity etc)
+    const tempAlerts = liveAlerts.filter(a => a.sensor === 'temperature');
+
+    const hasFatalOrCritical = tempAlerts.some(a => a.level === 'fatal' || a.level === 'critical');
     if (hasFatalOrCritical) return 'critical';
 
-    const hasWarning = liveAlerts.some(a => a.level === 'warning');
+    const hasWarning = tempAlerts.some(a => a.level === 'warning');
     if (hasWarning) return 'warning';
 
     return 'healthy';
@@ -296,7 +299,7 @@ export default function Simulator() {
 
                 {/* Suspense is CRITICAL for loading async models */}
                 <Suspense fallback={<Loader />}>
-                  <ThreeTomato healthStatus={healthStatus} temperature={values.temperature} />
+                  <TomatoPlant healthStatus={healthStatus} temperature={values.temperature} />
                 </Suspense>
 
                 <Environment preset="studio" />
