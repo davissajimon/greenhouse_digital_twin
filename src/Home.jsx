@@ -1,6 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment, Html, useProgress } from "@react-three/drei";
+import { ThreeTomato } from "./components/ThreeTomato";
+
+function Loader() {
+  const { progress } = useProgress();
+  return <Html center><div className="text-gray-500 font-bold" style={{ color: '#666', fontWeight: 'bold' }}>{progress.toFixed(0)}% loaded</div></Html>;
+}
 
 export default function Home() {
   const navigate = useNavigate(); // <-- added
@@ -16,7 +24,7 @@ export default function Home() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const pollingRef = useRef(null);
 
-  const backendUrl = "http://127.0.0.1:5000/sensors"; // change if different
+  const backendUrl = "https://greenhouse-digital-twin.onrender.com/sensors"; // change if different
 
   async function fetchSensors() {
     try {
@@ -55,13 +63,18 @@ export default function Home() {
         <main className="main">
           <div className="model-box">
             <div className="model-placeholder">
-              <img
-                src="/src/assets/healthy_tomato.png"
-                alt="3D model placeholder"
-                style={{ width: "1300px", height: "auto" }}
-              />
+              <Canvas
+                style={{ width: "100%", height: "500px" }}
+                camera={{ position: [0, 0, 15], fov: 50 }}
+              >
+                <Suspense fallback={<Loader />}>
+                  <ThreeTomato temperature={sensors.find(s => s.id === "t1")?.raw_value || 25} humidity={sensors.find(s => s.id === "h1")?.raw_value || 65} />
+                  <Environment preset="studio" />
+                  <OrbitControls />
+                </Suspense>
+              </Canvas>
             </div>
-            <div className="note">3D Twin Viewer (placeholder)</div>
+            <div className="note">3D Twin Viewer</div>
           </div>
 
           <div className="sensor-grid">

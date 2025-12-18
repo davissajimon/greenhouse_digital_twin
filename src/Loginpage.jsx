@@ -99,7 +99,7 @@ const Loginpage = ({ onLogin }) => {
 
         <div className="lp-footer">
           <a href="#forgot" className="lp-link">Forgot password?</a>
-          <span className="lp-footer-right">© {new Date().getFullYear()} KV Project</span>
+          {/* <span className="lp-footer-right">© {new Date().getFullYear()} KV Project</span> */}
         </div>
       </div>
     </div>
