@@ -11,8 +11,7 @@ import { getPeaAlerts } from "./components/ThreePeaThresholds";
 import { useNavigate } from "react-router-dom";
 
 function Loader() {
-  const { progress } = useProgress();
-  return <Html center><div className="text-gray-500 font-bold" style={{ color: '#666', fontWeight: 'bold' }}>{progress.toFixed(0)}% loaded</div></Html>;
+  return <Html center><img src="/loading.gif" alt="Loading..." style={{ width: '100px', height: '100px', backgroundColor: 'transparent', filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.1))' }} /></Html>;
 }
 
 export default function Simulator() {
@@ -155,7 +154,7 @@ export default function Simulator() {
             (data ? ` Response: ${JSON.stringify(data)}` : ""),
         });
       }
-    } catch (err) {
+    } catch {
       setMessage({
         type: "ok",
         text: "Backend unreachable — simulation applied locally (UI simulated).",
@@ -178,14 +177,23 @@ export default function Simulator() {
   }[k] || k);
 
   return (
-    <div className="simulator-root">
-      {/* LEFT: 70%  */}
-      <div className="simulator-left-70">
-        <div className="model-box">
-          <div className="model-placeholder">
-            {/* 3D Digital Twin Viewer */}
-            <div className="model-viewport">
-              <Canvas camera={{ position: [0, 1, 4], fov: 50 }}>
+    <div className="sim-container">
+      <div className="sim-card">
+        <div className="sim-card-inner">
+          <div className="header">
+            <h1>Simulator</h1>
+            <p>Adjust parameters and observe 3D model changes</p>
+          </div>
+
+          <div className="responsive-layout">
+            {/* Main Content - 3D Scene */}
+            <main className="main-content">
+              <div className="model-section">
+                <div className="model-box">
+                  <div className="model-placeholder">
+                    {/* 3D Digital Twin Viewer */}
+                    <div className="model-viewport">
+                      <Canvas camera={{ position: [0, 1, 4], fov: 50 }}>
 
                 {/* Dynamic Lighting based on Temperature */}
                 {(() => {
@@ -240,225 +248,170 @@ export default function Simulator() {
                 </Suspense>
 
                 <Environment preset="studio" />
-                <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+                        <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
 
-              </Canvas>
+                      </Canvas>
 
-              <div style={{ position: 'absolute', top: '1rem', left: '1rem', backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)', fontSize: '0.875rem', fontWeight: 600 }}>
-                Simulated Twin
+                      <div style={{ position: 'absolute', top: '1rem', left: '1rem', backgroundColor: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1)', fontSize: '0.875rem', fontWeight: 600 }}>
+                        Simulated Twin
+                      </div>
+                    </div>
+                  </div>
+                  <div className="model-label">3D Simulator</div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div className="model-note">3d simulator from given values</div>
-        </div>
-      </div>
 
-      {/* RIGHT: 30% details + simulator inputs + alerts */}
-      <aside className="simulator-right-30">
-        <div className="details-card">
-          <div className="details-header">
-            <div className="plant-select">
-              <label style={{ fontWeight: 700 }}>Plant:</label>
-              <select
-                value={plant}
-                onChange={(e) => setPlant(e.target.value)}
-                className="plant-dropdown"
-              >
-                <option value="tomato">Tomato</option>
-                <option value="chilli">Chilli</option>
-                <option value="pea">Pea</option>
-              </select>
+            </main>
 
-            </div>
-            {/* Back button moved below alerts; keep header clean */}
-            <div style={{ width: 48 }} />
+            {/* Sidebar - Controls & Alerts */}
+            <aside className="sidebar-panel">
+        <div className="controls-section">
+          <div className="plant-select">
+            <label>Plant:</label>
+            <select
+              value={plant}
+              onChange={(e) => setPlant(e.target.value)}
+              className="plant-dropdown"
+            >
+              <option value="tomato">Tomato</option>
+              <option value="chilli">Chilli</option>
+              <option value="pea">Pea</option>
+            </select>
           </div>
 
-          {/* Environment simulator (no sliders) */}
-          <div className="env-sim">
-            <div className="env-grid">
-              <div className="env-row">
-                <label>Temperature (°C)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="0.1"
-                  value={values.temperature}
-                  onChange={(e) => update("temperature", e.target.value)}
-                />
-              </div>
-
-              <div className="env-row">
-                <label>Humidity (%)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="1"
-                  value={values.humidity}
-                  onChange={(e) => update("humidity", e.target.value)}
-                />
-              </div>
-
-              <div className="env-row">
-                <label>Soil Moisture (%)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="1"
-                  value={values.soil}
-                  onChange={(e) => update("soil", e.target.value)}
-                />
-              </div>
-
-              <div className="env-row">
-                <label>Light (µmol/m²s)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="1"
-                  value={values.light}
-                  onChange={(e) => update("light", e.target.value)}
-                />
-              </div>
-
-              <div className="env-row">
-                <label>CO₂ (ppm)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="1"
-                  value={values.co2}
-                  onChange={(e) => update("co2", e.target.value)}
-                />
-              </div>
-
-              <div className="env-row">
-                <label>Pressure (hPa)</label>
-                <input
-                  style={{ backgroundColor: "#E7F2EF", color: "black" }}
-                  type="number"
-                  step="1"
-                  value={values.pressure}
-                  onChange={(e) => update("pressure", e.target.value)}
-                />
-              </div>
+          {/* Environment Controls */}
+          <div className="controls-grid">
+            <div className="control-row">
+              <label>Temperature (°C)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={values.temperature}
+                onChange={(e) => update("temperature", e.target.value)}
+              />
             </div>
 
-            {/* placeholder to keep layout balanced */}
-            <div style={{ width: 110 }} />
+            <div className="control-row">
+              <label>Humidity (%)</label>
+              <input
+                type="number"
+                step="1"
+                value={values.humidity}
+                onChange={(e) => update("humidity", e.target.value)}
+              />
+            </div>
+
+            <div className="control-row">
+              <label>Soil Moisture (%)</label>
+              <input
+                type="number"
+                step="1"
+                value={values.soil}
+                onChange={(e) => update("soil", e.target.value)}
+              />
+            </div>
+
+            <div className="control-row">
+              <label>Light (µmol/m²s)</label>
+              <input
+                type="number"
+                step="1"
+                value={values.light}
+                onChange={(e) => update("light", e.target.value)}
+              />
+            </div>
+
+            <div className="control-row">
+              <label>CO₂ (ppm)</label>
+              <input
+                type="number"
+                step="1"
+                value={values.co2}
+                onChange={(e) => update("co2", e.target.value)}
+              />
+            </div>
+
+            <div className="control-row">
+              <label>Pressure (hPa)</label>
+              <input
+                type="number"
+                step="1"
+                value={values.pressure}
+                onChange={(e) => update("pressure", e.target.value)}
+              />
+            </div>
           </div>
 
           {message && (
-            <div
-              className={`message ${message.type === "ok" ? "ok" : message.type === "warn" ? "warn" : "err"
-                }`}
-            >
+            <div className={`message ${message.type}`}>
               {message.text}
             </div>
           )}
+        </div>
 
-          {/* Alerts grid below inputs */}
-          <div className="alerts-section">
-            <h4>Sensor Alerts</h4>
-            <div className="sensor-alerts-grid">
-              {["temperature", "humidity", "soil", "light", "co2", "pressure"].map(
-                (sensorKey) => {
-                  const list = groupedAlerts[sensorKey] || [];
-                  const primary = list.length
-                    ? list[0]
-                    : { level: "ok", title: "OK", description: "No issues" };
-                  return (
-                    <div
-                      key={sensorKey}
-                      className={`sensor-alert-tile ${primary.level}`}
-                    >
-                      <div className="tile-header">
-                        <div className="tile-sensor">{sensorLabel(sensorKey)}</div>
-                        <div className={`severity-chip ${primary.level}`}>
-                          {primary.level.toUpperCase()}
-                        </div>
-                      </div>
-                      <div className="tile-main">
-                        <div className="tile-title">{primary.title}</div>
-                        <div className="tile-desc">{primary.description}</div>
+        {/* Alerts Section */}
+        <div className="alerts-section">
+          <h3 className="alerts-title">Sensor Alerts</h3>
+          <div className="sensor-alerts-grid">
+            {["temperature", "humidity", "soil", "light", "co2", "pressure"].map(
+              (sensorKey) => {
+                const list = groupedAlerts[sensorKey] || [];
+                const primary = list.length
+                  ? list[0]
+                  : { level: "ok", title: "OK", description: "No issues" };
+                return (
+                  <div
+                    key={sensorKey}
+                    className={`sensor-alert-tile ${primary.level}`}
+                  >
+                    <div className="tile-header">
+                      <div className="tile-sensor">{sensorLabel(sensorKey)}</div>
+                      <div className={`severity-chip ${primary.level}`}>
+                        {primary.level.toUpperCase()}
                       </div>
                     </div>
-                  );
-                }
-              )}
-            </div>
-
-            {/* Simulate + Reset placed below alerts, same line */}
-            <div
-              className="alerts-actions"
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                gap: 344,
-                marginTop: 15,
-              }}
-            >
-              <button
-                onClick={handleSimulate}
-                disabled={loading}
-                style={{
-                  background: "#E7F2EF",
-                  color: "#19183B",
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  fontWeight: 700,
-                  boxShadow: "0 8px 22px rgba(231,242,239,0.55)",
-                  border: "1px solid rgba(25,24,59,0.06)",
-                  cursor: "pointer",
-                }}
-              >
-                {loading ? "Simulating..." : "Simulate"}
-              </button>
-
-              <button
-                className="btn-ghost"
-                onClick={() => {
-                  setValues(defaults);
-                  setMessage(null);
-                }}
-                style={{
-                  background: "#E7F2EF",
-                  color: "#19183B",
-                  padding: "8px 27px",
-                  borderRadius: 6,
-                  fontWeight: 700,
-                  boxShadow: "0 8px 22px rgba(231,242,239,0.55)",
-                  border: "1px solid rgba(25,24,59,0.06)",
-                  cursor: "pointer",
-                }}
-              >
-                Reset
-              </button>
-            </div>
-            <br></br>
-            {/* Back to Home on its own row below the two buttons */}
-            <div style={{ marginTop: 12 }}>
-              <button
-                onClick={() => navigate("/")}
-                style={{
-                  width: "100%",
-                  background: "transparent",
-                  color: "#19183B",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  padding: "8px 12px",
-                  borderRadius: 6,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-                aria-label="Back to Home"
-              >
-                ← Back to Home
-              </button>
-            </div>
+                    <div className="tile-main">
+                      <div className="tile-title">{primary.title}</div>
+                      <div className="tile-desc">{primary.description}</div>
+                    </div>
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
-      </aside>
 
+        {/* Action Buttons */}
+        <div className="actions-section">
+          <button
+            onClick={handleSimulate}
+            disabled={loading}
+            className="btn-solid"
+          >
+            {loading ? "Simulating..." : "Simulate"}
+          </button>
+
+          <button
+            onClick={() => {
+              setValues(defaults);
+              setMessage(null);
+            }}
+            className="btn-outline"
+          >
+            Reset Values
+          </button>
+
+          <button
+            onClick={() => navigate("/")}
+            className="btn-outline"
+          >
+            ← Back to Home
+          </button>
+        </div>
+      </aside>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

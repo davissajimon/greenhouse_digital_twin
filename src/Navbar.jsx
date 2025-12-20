@@ -1,41 +1,53 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Container from "react-bootstrap/Container";
-import Navbar from "react-bootstrap/Navbar";
-import Button from "react-bootstrap/Button";
+import { useDarkMode } from "./DarkModeContext";
 import "./Navbar.css";
 
 export default function MainNavbar({ user, onLogout }) {
   const navigate = useNavigate();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <Navbar expand="lg" className="calathe-navbar">
-      <Container fluid className="container-fluid">
-        <div className="calathe-brand" onClick={() => navigate("/")}>
-          {/* <img src="/logo.png" alt="logo" /> */}
-          <div style={{ fontSize: '24px' }}>🌱</div>
-          <span>Calathe</span>
+    <nav className="navbar-main">
+      <div className="navbar-container">
+        {/* Brand Section */}
+        <div className="navbar-brand" onClick={() => navigate("/")}>
+          <span className="navbar-logo">🌱</span>
+          <span className="navbar-title">Calathe</span>
         </div>
 
+        {/* Right Section */}
         {user && (
-          <div className="calathe-right">
-            <div className="calathe-login-text">
-              Logged in as: <strong>{user.name}</strong>
+          <div className="navbar-right">
+            {/* User Info */}
+            <div className="navbar-user-info">
+              <span className="navbar-user-label">Welcome,</span>
+              <span className="navbar-user-name">{user.name}</span>
             </div>
-            <Button
-              variant="outline-dark"
-              size="sm"
-              style={{ marginLeft: '12px', borderColor: 'rgba(0,0,0,0.1)' }}
+
+            {/* Theme Toggle */}
+            <button 
+              className="navbar-theme-toggle"
+              onClick={toggleDarkMode}
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+
+            {/* Logout Button */}
+            <button
+              className="navbar-logout-btn"
               onClick={() => {
                 if (onLogout) onLogout();
                 navigate("/login");
               }}
             >
               Logout
-            </Button>
+            </button>
           </div>
         )}
-      </Container>
-    </Navbar>
-  )
+      </div>
+    </nav>
+  );
 }

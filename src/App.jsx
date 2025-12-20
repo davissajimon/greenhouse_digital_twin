@@ -6,6 +6,7 @@ import Simulator from "./Simulator";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MainNavbar from "./Navbar";
 import Footer from "./Footer";
+import { DarkModeProvider } from "./DarkModeContext";
 
 // Wrapper for protected routes
 const ProtectedRoute = ({ user, children }) => {
@@ -39,15 +40,16 @@ function App() {
   };
 
   return (
-    <Router>
-      <MainNavbar user={user} onLogout={handleLogout} />
+    <DarkModeProvider>
+      <Router>
+        <MainNavbar user={user} onLogout={handleLogout} />
 
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute user={user}>
-              <Home />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute user={user}>
+                <Home />
             </ProtectedRoute>
           }
         />
@@ -69,7 +71,8 @@ function App() {
         />
       </Routes>
       <Footer />
-    </Router>
+      </Router>
+    </DarkModeProvider>
   );
 }
 

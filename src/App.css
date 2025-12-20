@@ -1,3 +1,9 @@
+/* Global dark mode support */
+html {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -35,6 +41,16 @@
   box-shadow: 0 8px 24px rgba(25,24,59,0.06);
 }
 
+[data-theme="dark"] .card {
+  background: linear-gradient(180deg, rgba(45, 106, 89, 0.2), rgba(30, 40, 55, 0.8));
+  border: 1px solid rgba(74, 155, 127, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
 .read-the-docs {
   color: #708993;
+}
+
+[data-theme="dark"] .read-the-docs {
+  color: #B0B8C1;
 }
