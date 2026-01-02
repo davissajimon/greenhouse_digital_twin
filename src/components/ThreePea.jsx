@@ -1,111 +1,107 @@
 import React, { useEffect } from 'react';
 import { useGLTF, Center } from '@react-three/drei';
+import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
-export function ThreePea({ temperature = 25 }) {
-    // Pea-specific model
-    const { scene } = useGLTF('/pea.glb');
+export function ThreePea({ data }) {
+    // Currently using healthy_tomato as placeholder per previous context
+    const { scene } = useGLTF('/healthy_tomato.glb');
 
     useEffect(() => {
-        const temp = Number(temperature);
-
-        // --- DEFINING STATES BY TEMPERATURE ONLY (Pea specific ranges - cool crop) ---
-
-        // 1. FROST (Dead)
-        // Range: <= -5°C
-        const isFrost = temp <= -5;
-
-        // 2. COLD / WET MODE
-        // Range: -5°C < Temp < 5°C (Pea is cold-tolerant but not frost-hardy)
-        const isColdWetMode = (temp > -5) && (temp < 5);
-
-        // 3. HOT / DRY MODE
-        // Range: Temp > 28°C (Peas prefer cooler conditions, heat stress starts earlier)
-        const isHotDryMode = temp > 28;
-
-        // 4. OPTIMAL (Healthy)
-        // Range: 5°C <= Temp <= 28°C
+        const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };
+        const healthState = evaluatePlantHealth(safeData);
+        const condition = healthState.id;
 
         scene.traverse((child) => {
             if (child.isMesh) {
-                // Clone material to ensure unique instances
                 if (!child.userData.isCloned) {
                     child.material = child.material.clone();
                     child.userData.isCloned = true;
                 }
 
                 const name = child.name ? child.name.toLowerCase() : '';
-                const isLeaf = name.includes('leaf') || name.includes('leaves') || name.includes('pea');
-                const isPod = name.includes('pod') || name.includes('fruit');
+                const isLeaf = name.includes('leaf') || name.includes('leaves');
+                const isFruit = name.includes('tomato'); // Placeholder has tomato parts
                 const isStem = name.includes('stem');
                 const isPot = name.includes('pot');
 
-                // Reset Defaults
+                // --- RESET DEFAULTS ---
                 child.visible = true;
+                child.material.emissive.setHex(0x000000);
                 child.material.roughness = 0.5;
-                child.material.metalness = 0.0;
 
-                // --- APPLY VISUALS ---
+                // Pea Base Colors (Slightly lighter/yellower green than tomato)
+                if (isLeaf) child.material.color.set('#66CDAA');
+                if (isStem) child.material.color.set('#556B2F');
+                // Pea flowers/pods are usually green/white, but placeholder is tomato fruit
+                if (isFruit) child.material.color.set('#98FB98'); // Pale Green for "Pea Pods"
+                if (isPot) child.material.color.set('#8B4513');
 
-                // CASE 1: FROST
-                if (isFrost) {
-                    if (isLeaf || isPod) child.visible = false;
-                }
 
-                // CASE 2: HOT / DRY (Temp > 28)
-                else if (isHotDryMode) {
-                    if (isLeaf) {
-                        child.material.color.set('#8B5A2B'); // Brown/Crispy
-                        child.material.roughness = 0.5; 
-                    } else if (isStem) {
-                        child.material.color.set('#5C4033'); // Dry Wood
-                    } else if (isPod) {
-                        child.visible = false;
-                    }
-                }
+                // --- APPLY CONDITIONS ---
+                switch (condition) {
+                    case CONDITIONS.FROST:
+                        if (isLeaf || isStem) {
+                            child.material.color.lerp({ r: 0.7, g: 0.8, b: 1 }, 0.6);
+                            child.material.emissive.setHex(0x001133);
+                        }
+                        if (isFruit) child.visible = false;
+                        break;
 
-                // CASE 3: COLD / WET (Temp < 5)
-                else if (isColdWetMode) {
-                    if (isLeaf) {
-                        child.material.color.set('#708270'); // Greyish-Green (Moldy)
-                        child.material.roughness = 0.5;
-                    } else if (isStem) {
-                        child.material.color.set('#4A5D4A'); // Rotting Stem
-                    } else if (isPod) {
-                        child.material.color.set('#556B2F'); // Rotting Dark Green
-                        child.material.roughness = 0.5;
-                    }
-                }
+                    case CONDITIONS.HEAT_STRESS:
+                        if (isLeaf) {
+                            child.material.color.set('#BDB76B'); // Khaki (Dry)
+                            child.material.roughness = 0.8;
+                        }
+                        break;
 
-                // CASE 4: OPTIMAL (5 <= Temp <= 28)
-                else {
-                    if (isLeaf) {
-                        child.material.color.set('#2E8B57'); // Healthy Green
-                    } else if (isStem) {
-                        child.material.color.set('#3A5F0B'); // Healthy Stem
-                    } else if (isPod) {
-                        child.material.color.set('#6B8E23'); // Olive Green Pea Pod
-                        child.material.roughness = 0.4;
-                        child.material.metalness = 0.05; 
-                    }
-                }
+                    case CONDITIONS.DROUGHT:
+                        if (isLeaf) {
+                            child.material.color.set('#8B7355');
+                            child.material.roughness = 1.0;
+                            // Rotate leaves down could be added here if referencing specific mesh
+                        }
+                        break;
 
-                // Always color Pot
-                if (isPot) {
-                    child.material.color.set('#8B4513');
+                    case CONDITIONS.ROOT_ROT:
+                        if (isStem) child.material.color.set('#1a1100');
+                        if (isLeaf) child.material.color.set('#556B2F');
+                        break;
+
+                    case CONDITIONS.MOLD_RISK:
+                        if (isLeaf) {
+                            child.material.color.set('#778899'); // Grayish
+                            child.material.roughness = 1.0;
+                        }
+                        break;
+
+                    case CONDITIONS.BLOSSOM_DROP:
+                        if (isFruit) child.visible = false;
+                        break;
+
+                    case CONDITIONS.WILTING_WET:
+                        if (isLeaf) child.material.color.set('#2F4F4F'); // Dark Slate
+                        if (isFruit) child.visible = false;
+                        break;
+
+                    case CONDITIONS.SLOW_GROWTH:
+                        // Slightly paler
+                        if (isLeaf) child.material.color.lerp({ r: 0.8, g: 0.8, b: 0.6 }, 0.3);
+                        break;
+
+                    default:
+                        break;
                 }
             }
         });
-    }, [scene, temperature]);
+    }, [scene, data]);
 
     return (
         <group dispose={null}>
             <Center top>
-                <group scale={0.35} position={[0, -4, 1.5]}>
+                <group scale={0.5} position={[0, 0, -5]}>
                     <primitive object={scene} />
                 </group>
             </Center>
         </group>
     );
 }
-
-useGLTF.preload('/pea.glb');

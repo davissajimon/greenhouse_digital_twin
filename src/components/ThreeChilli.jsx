@@ -1,33 +1,18 @@
 import React, { useEffect } from "react";
 import { useGLTF, Center } from "@react-three/drei";
+import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
-export function ThreeChilli({ temperature = 25 }) {
-  // Chilli-specific model
+export function ThreeChilli({ data }) {
   const { scene } = useGLTF("/chilli.glb");
 
   useEffect(() => {
-    const temp = Number(temperature);
-
-    // --- DEFINING STATES BY TEMPERATURE ONLY (Chilli specific ranges) ---
-
-    // 1. FROST (Dead)
-    // Range: <= 0°C
-    const isFrost = temp <= 0;
-
-    // 2. COLD / WET MODE
-    // Range: 0°C < Temp < 15°C (Chilli is more cold-sensitive)
-    const isColdWetMode = temp > 0 && temp < 15;
-
-    // 3. HOT / DRY MODE
-    // Range: Temp > 40°C (Chilli tolerates higher heat)
-    const isHotDryMode = temp > 40;
-
-    // 4. OPTIMAL (Healthy)
-    // Range: 15°C <= Temp <= 40°C
+    // Safety check
+    const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };
+    const healthState = evaluatePlantHealth(safeData);
+    const condition = healthState.id;
 
     scene.traverse((child) => {
       if (child.isMesh) {
-        // Clone material to ensure unique instances
         if (!child.userData.isCloned) {
           child.material = child.material.clone();
           child.userData.isCloned = true;
@@ -39,87 +24,75 @@ export function ThreeChilli({ temperature = 25 }) {
         const isStem = name.includes("stem");
         const isPot = name.includes("pot");
 
-        // Reset Defaults
+        // --- RESET DEFAULTS ---
         child.visible = true;
+        child.material.emissive.setHex(0x000000);
         child.material.roughness = 0.3;
         child.material.metalness = 0.0;
 
-        // --- APPLY VISUALS ---
+        // Chilli Default Colors
+        if (isLeaf) child.material.color.set("#135a1a");
+        if (isStem) child.material.color.set("#06370b");
+        if (isFruit) child.material.color.set("#b01010");
+        if (isPot) child.material.color.set("#8B4513");
 
-        // CASE 1: FROST
-        if (isFrost) {
-          if (isLeaf || isFruit) child.visible = false;
-          if (isStem) {
-            child.material = child.material.clone();
 
-            // Disconnect the texture map so the color shows pure
-            child.material.map = null;
-            child.material.color.set("#0f736f");
+        // --- APPLY CONDITIONS ---
+        switch (condition) {
+          case CONDITIONS.FROST:
+            if (isLeaf || isStem) {
+              child.material.color.lerp({ r: 0.6, g: 0.8, b: 1 }, 0.7);
+              child.material.emissive.setHex(0x002244);
+            }
+            if (isFruit) child.visible = false;
+            break;
 
-            // Important: Tell Three.js the material needs a re-compile
-            child.material.needsUpdate = true;
-          }
-        }
+          case CONDITIONS.HEAT_STRESS:
+            if (isLeaf) {
+              child.material.color.set("#3f1e1e"); // Brownish Red
+              child.material.roughness = 0.8;
+            }
+            break;
 
-        // CASE 2: HOT / DRY (Temp > 40)
-        else if (isHotDryMode) {
-          if (isLeaf) {
-            child.material.color.set("#3f1e1e"); // Brown/Crispy
-            child.material.roughness = 0.8;
-          } else if (isStem) {
-            child.material.color.set("#774313");
-            child.material.roughness = 0.9; // Dry Wood
-          } else if (isFruit) {
-            child.visible = false;
-          }
-        }
+          case CONDITIONS.DROUGHT:
+            if (isLeaf) {
+              child.material.color.set("#8B4513"); // Brown
+              child.material.roughness = 0.9;
+            }
+            break;
 
-        // CASE 3: COLD / WET (Temp < 15)
-         else if (isColdWetMode) {
-    
+          case CONDITIONS.ROOT_ROT:
+            if (isStem) child.material.color.set("#1a0d00");
+            if (isLeaf) child.material.color.set("#5c715c");
+            break;
 
-    
-    child.material.map = null; 
-    
-   
-    child.material.needsUpdate = true; 
+          case CONDITIONS.MOLD_RISK:
+          case CONDITIONS.DISEASE_ZONE:
+            if (isLeaf) {
+              child.material.color.set("#8FBC8F"); // Moldy pale green
+              child.material.roughness = 1.0;
+            }
+            break;
 
-    if (isLeaf) {
-        child.material.color.set("#89be26"); // Greyish-Green (Moldy)
-        child.material.roughness = 0.5; // Slightly wet
-    } else if (isStem) {
-        child.material.color.set("#02527e"); // Rotting Stem
-        // Stems usually don't need roughness changes, but you can add if it looks too shiny
-    } else if (isFruit) {
-        child.material.color.set("#A52A2A"); // Deep Rotten Red
-        child.material.roughness = 0.2; // Rotting fruit is often slimy/wet (low roughness)
-    }
-}
+          case CONDITIONS.SUNSCALD:
+            if (isLeaf || isFruit) child.material.color.lerp({ r: 1, g: 1, b: 0.9 }, 0.4);
+            break;
 
-        // CASE 4: OPTIMAL (15 <= Temp <= 40)
-      
-else{
-    if (isLeaf) {
-        child.material.color.set("#135a1a"); // Greyish-Green (Moldy)
-        child.material.roughness = 0.9;
-    }
-    if (isStem)
-    {
-         child.material.color.set("#06370b"); // Greyish-Green (Moldy)
-        child.material.roughness = 0.9;
-    }
-    if(isFruit)
-    {
-        child.material.color.set("#b01010ff")
-    }
-}
-        // Always color Pot
-        if (isPot) {
-          child.material.color.set("#8B4513");
+          case CONDITIONS.WILTING_WET:
+            if (isLeaf) child.material.color.set('#4B5320'); // Dark Army Green
+            if (isFruit) child.visible = false;
+            break;
+
+          case CONDITIONS.SLOW_GROWTH:
+            if (isLeaf) child.material.color.set('#6B8E23');
+            break;
+
+          default:
+            break;
         }
       }
     });
-  }, [scene, temperature]);
+  }, [scene, data]);
 
   return (
     <group dispose={null}>
@@ -131,5 +104,3 @@ else{
     </group>
   );
 }
-
-useGLTF.preload("/chilli.glb");

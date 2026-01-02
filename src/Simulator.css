@@ -1,837 +1,200 @@
-/* Simulator.css - Fully Responsive Design */
-
-/* Professional Soothing Color Palette - Greenhouse Theme */
-:root {
-  /* Light Mode Colors */
-  /* Primary colors - Nature-inspired, calming */
-  --primary-dark: #1B4D3E;      /* Deep forest green */
-  --primary: #2D6A59;            /* Rich sage green */
-  --primary-light: #4A9B7F;      /* Soft teal green */
-  
-  /* Secondary - Warm earth tones */
-  --secondary: #C4A961;          /* Warm gold accent */
-  --secondary-light: #E8D5B7;    /* Cream/beige */
-  
-  /* Neutral palette - Professional grays */
-  --neutral-dark: #2C3E50;       /* Dark slate */
-  --neutral: #546E7A;            /* Medium slate */
-  --neutral-light: #90A4AE;      /* Light gray-blue */
-  --neutral-lighter: #ECF0F1;    /* Very light gray */
-  
-  /* Status colors */
-  --success: #27AE60;            /* Green */
-  --warning: #F39C12;            /* Amber */
-  --danger: #E74C3C;             /* Red */
-  --info: #3498DB;               /* Blue */
-  
-  /* Backgrounds */
-  --bg-gradient: linear-gradient(135deg, #F8FAFB 0%, #E8F0ED 100%);
-  --bg-gradient-dark: linear-gradient(135deg, #1B4D3E 0%, #2D6A59 100%);
-  --card-bg: rgba(255, 255, 255, 0.95);
-  --card-shadow: 0 4px 20px rgba(43, 106, 89, 0.08);
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Dark Mode Colors */
-[data-theme="dark"] {
-  --primary-dark: #4A9B7F;      /* Lighter sage for dark mode */
-  --primary: #5BA89D;            /* Brighter sage */
-  --primary-light: #6FC3A8;      /* Brighter teal */
-  
-  --secondary: #E8D5B7;          /* Light cream */
-  --secondary-light: #C4A961;    /* Gold */
-  
-  --neutral-dark: #E3E8EF;       /* Light text */
-  --neutral: #B0B8C1;            /* Medium light text */
-  --neutral-light: #7A8995;      /* Light gray-blue */
-  --neutral-lighter: #1F2A3A;    /* Dark background */
-  
-  --bg-gradient: linear-gradient(135deg, #0F1418 0%, #1A2332 100%);
-  --card-bg: rgba(30, 40, 55, 0.85);
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Global Reset */
-* {
-  box-sizing: border-box;
-}
-
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background: var(--bg-gradient);
-}
-
-/* MAIN CONTAINER */
+/* Simulator.css */
+/* Reusing Home container basics but specific to Simulator needs */
 
 .sim-container {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  background: var(--bg-gradient);
-}
-
-.sim-card {
-  width: 100%;
-  max-width: 1600px;
-  max-height: 95vh;
-  background: transparent;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-gradient);
+  /* Inherit from App/Home vars */
   overflow: hidden;
 }
 
-.sim-card-inner {
-  background: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: var(--card-shadow);
-  padding: 20px;
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+.sim-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  /* Or row if we want side-by-side */
+  padding: 20px 40px;
+  position: relative;
   gap: 20px;
 }
 
-/* Custom scrollbar */
-.sim-card-inner::-webkit-scrollbar {
-  width: 8px;
-}
-
-.sim-card-inner::-webkit-scrollbar-track {
-  background: rgba(43, 106, 89, 0.05);
-  border-radius: 10px;
-}
-
-.sim-card-inner::-webkit-scrollbar-thumb {
-  background: rgba(77, 155, 127, 0.3);
-  border-radius: 10px;
-}
-
-.sim-card-inner::-webkit-scrollbar-thumb:hover {
-  background: rgba(77, 155, 127, 0.5);
-}
-
-/* HEADER */
-
-.header {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.header h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--primary-dark);
-  letter-spacing: -0.5px;
-}
-
-.header p {
-  margin: 8px 0 0 0;
-  font-size: 14px;
-  color: var(--neutral);
-  font-weight: 500;
-}
-
-/* RESPONSIVE LAYOUT */
-
-.responsive-layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
-  width: 100%;
+/* The Big Viewport */
+.sim-viewport-wrapper {
+  flex: 1;
   min-height: 0;
+  /* Important for flex nesting */
+  background: #181a1b;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  /* Canvas stays inside */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
-.main-content {
+/* Floating HUD / Control Panel */
+.sim-controls-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: calc(100% - 40px);
+  background: rgba(30, 40, 55, 0.95);
+  /* Dark Glass */
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  min-width: 0;
+  gap: 20px;
+  overflow-y: auto;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  color: #fff;
 }
 
-.sidebar-panel {
+[data-theme="light"] .sim-controls-overlay {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Plant Selector */
+.sim-select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-select-group label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.sim-dropdown {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+}
+
+[data-theme="light"] .sim-dropdown {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Sliders */
+.sim-slider-group {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  min-width: 0;
 }
 
-/* MODEL SECTION */
-
-.model-section {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.model-box {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.98),
-    rgba(255, 255, 255, 0.96)
-  );
-  padding: 16px;
-  border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(43, 106, 89, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.model-placeholder {
-  width: 100%;
-  height: clamp(300px, 55vh, 650px);
-  border-radius: 10px;
-  border: 2px dashed rgba(45, 106, 89, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fafbfc;
-  overflow: hidden;
-  position: relative;
-}
-
-[data-theme="dark"] .model-placeholder {
-  background: #1f2d3d;
-  border-color: rgba(107, 195, 168, 0.2);
-}
-
-.model-placeholder canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.model-label {
-  font-size: 13px;
-  color: var(--neutral);
-  font-weight: 500;
-  text-align: center;
-}
-
-/* 3D VIEWPORT */
-
-.model-viewport {
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-  background-color: #f5f5f5;
-}
-
-[data-theme="dark"] .model-viewport {
-  background-color: #2a3a4a;
-}
-
-/* CONTROLS SECTION */
-
-.controls-section {
-  background: linear-gradient(
-    180deg,
-    rgba(74, 155, 127, 0.04),
-    rgba(45, 106, 89, 0.01)
-  );
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(43, 106, 89, 0.04);
-  border: 1px solid rgba(74, 155, 127, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.plant-select {
+.slider-item {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 4px;
 }
 
-.plant-select label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.plant-dropdown {
-  padding: 8px 10px;
-.plant-dropdown {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1.5px solid rgba(45, 106, 89, 0.2);
-  background-color: #ffffff;
-  color: #1A1A1A;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-[data-theme="dark"] .plant-dropdown {
-  background-color: rgba(255, 255, 255, 0.95);
-  color: #1A1A1A;
-  border-color: rgba(107, 195, 168, 0.3);
-}
-
-.plant-dropdown option {
-  color: #1A1A1A;
-  background-color: #ffffff;
-}
-}
-
-.plant-dropdown:focus {
-  outline: none;
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(74, 155, 127, 0.1);
-}
-
-.plant-dropdown option {
-  color: var(--primary-dark);
-  background-color: #ffffff;
-}
-
-/* CONTROLS GRID */
-
-.controls-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.control-row {
+.slider-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-row label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary-dark);
-  flex: 0 0 45%;
-}
-
-.control-row input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1.5px solid rgba(45, 106, 89, 0.2);
-  background: #ffffff;
-  color: #1A1A1A;
-  font-size: 13px;
+  font-size: 0.9rem;
   font-weight: 500;
-  font-family: inherit;
-  transition: var(--transition);
 }
 
-[data-theme="dark"] .control-row input {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1A1A1A;
-  border-color: rgba(107, 195, 168, 0.3);
+.slider-value {
+  font-family: monospace;
+  font-weight: bold;
+  color: var(--primary, #4A9B7F);
 }
 
-.control-row input::placeholder {
-  color: rgba(26, 26, 26, 0.5);
-}
-
-[data-theme="dark"] .control-row input::placeholder {
-  color: rgba(26, 26, 26, 0.6);
-}
-
-.control-row input:focus {
-  outline: none;
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(74, 155, 127, 0.15);
-  background: #ffffff;
-}
-
-/* MESSAGE */
-
-.message {
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  border: 1px solid rgba(43, 106, 89, 0.04);
-  margin-top: 4px;
-}
-
-.message.ok {
-  background: #E7F9F3;
-  color: var(--primary-dark);
-}
-
-.message.warn {
-  background: #FFF8E9;
-  color: #6b5a00;
-}
-
-.message.err {
-  background: #FFECEC;
-  color: #9b1f1f;
-}
-
-/* ALERTS SECTION */
-
-.alerts-section {
-  background: linear-gradient(
-    180deg,
-    rgba(74, 155, 127, 0.04),
-    rgba(45, 106, 89, 0.01)
-  );
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(43, 106, 89, 0.04);
-  border: 1px solid rgba(74, 155, 127, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.alerts-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.sensor-alerts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  max-height: 250px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.sensor-alerts-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sensor-alerts-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sensor-alerts-grid::-webkit-scrollbar-thumb {
-  background: rgba(45, 106, 89, 0.2);
+input[type=range] {
+  width: 100%;
+  -webkit-appearance: none;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
+  outline: none;
 }
 
-.sensor-alert-tile {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(43, 106, 89, 0.04);
-  box-shadow: 0 2px 6px rgba(43, 106, 89, 0.03);
-  transition: var(--transition);
+[data-theme="light"] input[type=range] {
+  background: rgba(0, 0, 0, 0.1);
 }
 
-.sensor-alert-tile:hover {
-  box-shadow: 0 4px 12px rgba(43, 106, 89, 0.06);
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4A9B7F;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
-.tile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
-.tile-sensor {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.tile-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.tile-desc {
-  font-size: 11px;
-  color: rgba(43, 106, 89, 0.65);
-  margin-top: 3px;
-}
-
-.severity-chip {
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.severity-chip.ok {
-  background: #E7F2EF;
-  color: var(--primary-dark);
-  border: 1px solid rgba(74, 155, 127, 0.2);
-}
-
-.severity-chip.warning {
-  background: #FFF6E6;
-  color: #6b5a00;
-  border: 1px solid rgba(107, 90, 0, 0.1);
-}
-
-.severity-chip.critical {
-  background: #FFECEC;
-  color: #9b1f1f;
-  border: 1px solid rgba(155, 31, 31, 0.1);
-}
-
-.severity-chip.fatal {
-  background: #FFDFDF;
-  color: #7b0000;
-  border: 1px solid rgba(123, 0, 0, 0.1);
-}
-
-/* ACTIONS SECTION */
-
-.actions-section {
+/* Status Indicator */
+.sim-status {
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border-left: 4px solid transparent;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 100%;
+  gap: 4px;
 }
 
-.btn-outline,
-.btn-solid {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  border: none;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+[data-theme="light"] .sim-status {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1.5px solid rgba(45, 106, 89, 0.2);
-  color: var(--primary-dark);
+.status-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
-.btn-outline:hover {
-  background: rgba(74, 155, 127, 0.06);
-  border-color: rgba(45, 106, 89, 0.3);
+.status-value {
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
-.btn-outline:active {
-  background: rgba(74, 155, 127, 0.1);
-}
-
-.btn-solid {
-  background: linear-gradient(90deg, var(--primary-light), var(--primary-dark));
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(45, 106, 89, 0.25);
-}
-
-.btn-solid:hover {
-  box-shadow: 0 6px 16px rgba(45, 106, 89, 0.35);
-  transform: translateY(-1px);
-}
-
-.btn-solid:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(45, 106, 89, 0.25);
-}
-
-.btn-solid:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* RESPONSIVE BREAKPOINTS */
-
-/* LAPTOP (1200px+) */
-@media (min-width: 1200px) {
-  .responsive-layout {
-    grid-template-columns: 1fr 380px;
-    gap: 28px;
-  }
-
-  .sim-card-inner {
-    padding: 28px;
-  }
-
-  .header h1 {
-    font-size: 32px;
-  }
-
-  .model-placeholder {
-    height: clamp(350px, 55vh, 650px);
-  }
-
-  .sensor-alerts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* TABLET (768px - 1199px) */
-@media (max-width: 1199px) {
-  .responsive-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .sidebar-panel {
-    order: 3;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-
-  .controls-section {
-    grid-column: 1;
-  }
-
-  .alerts-section {
-    grid-column: 2;
-  }
-
-  .actions-section {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .header h1 {
-    font-size: 28px;
-  }
-
-  .model-placeholder {
-    height: clamp(280px, 45vh, 500px);
-  }
-
-  .sim-card-inner {
-    padding: 20px;
-  }
-}
-
-/* MOBILE (480px - 767px) */
-@media (max-width: 767px) {
-  .sim-container {
-    padding: 8px;
-  }
-
-  .sim-card-inner {
+/* Responsive */
+@media (max-width: 768px) {
+  .sim-content {
     padding: 16px;
-    gap: 16px;
-    border-radius: 12px;
   }
 
-  .header h1 {
-    font-size: 24px;
+  .sim-controls-overlay {
+    position: relative;
+    width: 100%;
+    top: 0;
+    right: 0;
+    max-height: none;
+    order: 2;
+    /* Put controls below canvas on mobile */
   }
 
-  .header p {
-    font-size: 13px;
+  .sim-viewport-wrapper {
+    min-height: 50vh;
+    flex: none;
   }
 
-  .responsive-layout {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .sidebar-panel {
-    order: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .model-placeholder {
-    height: clamp(250px, 40vh, 400px);
-    border-radius: 8px;
-  }
-
-  .model-box {
-    padding: 12px;
-    gap: 10px;
-  }
-
-  .controls-section {
-    padding: 14px;
-    gap: 10px;
-  }
-
-  .alerts-section {
-    padding: 14px;
-    gap: 10px;
-  }
-
-  .alerts-title {
-    font-size: 14px;
-  }
-
-  .control-row {
-    gap: 8px;
-  }
-
-  .control-row label {
-    font-size: 12px;
-  }
-
-  .control-row input {
-    font-size: 13px;
-  }
-
-  .plant-select label {
-    font-size: 12px;
-  }
-
-  .plant-dropdown {
-    font-size: 12px;
-  }
-
-  .btn-outline,
-  .btn-solid {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  .actions-section {
-    grid-template-columns: 1fr;
-  }
-
-  .sensor-alerts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tile-sensor {
-    font-size: 11px;
-  }
-
-  .tile-title {
-    font-size: 11px;
-  }
-
-  .severity-chip {
-    font-size: 9px;
-  }
-}
-
-/* SMALL MOBILE (< 480px) */
-@media (max-width: 480px) {
   .sim-container {
-    padding: 6px;
-  }
-
-  .sim-card-inner {
-    padding: 12px;
-  }
-
-  .header h1 {
-    font-size: 20px;
-    line-height: 1.2;
-  }
-
-  .header p {
-    font-size: 12px;
-  }
-
-  .model-placeholder {
-    height: clamp(200px, 35vh, 350px);
-  }
-
-  .control-row label {
-    font-size: 11px;
-  }
-
-  .btn-outline,
-  .btn-solid {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-
-  .plant-select label {
-    font-size: 11px;
-  }
-
-  .plant-dropdown {
-    font-size: 11px;
-  }
-
-  .sensor-alert-tile {
-    padding: 8px;
-  }
-
-  .tile-sensor {
-    font-size: 10px;
-  }
-
-  .tile-title {
-    font-size: 10px;
-  }
-
-  .tile-desc {
-    font-size: 10px;
+    overflow-y: auto;
   }
 }
-  border:1px solid rgba(25,24,59,0.08);
-  background-color: #E7F2EF;
- 
-}
-
-.plant-dropdown {
-  background-color: #E7F2EF;       /* dropdown background */
-  color: #19183B;                  /* text color */       /* border matches theme */
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-weight: 600;
-
-  /* optional: remove default arrow for custom look */
-  appearance: none;
-}
-
-/* Fixes option text color inside dropdown popup */
-.plant-dropdown option {
-  color: #19183B;
-  background-color: #ffffff;       /* dropdown list background */
-}
-
-
-/* Environment simulator (no sliders) */
-.env-sim{
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  width:100%;
-}
-
-/* left: inputs grid, right: buttons */
-.env-grid{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap:8px;
-  flex:1 1 0%;
-}
-/* No old CSS beyond this point */
