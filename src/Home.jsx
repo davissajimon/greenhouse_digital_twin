@@ -9,14 +9,50 @@ import { ThreePea } from "./components/ThreePea";
 
 import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 
-function SensorCard({ data }) {
-  if (!data) return null;
-  const health = evaluatePlantHealth(data);
+function SensorCard({ data, apiData }) {
+  // Use API data if available, otherwise fall back to local data
+  console.log("SensorCard - apiData:", apiData);
+  console.log("SensorCard - apiData.plant:", apiData?.plant);
+  console.log("SensorCard - data:", data);
+  
+  let displayData = null;
+  
+  if (apiData && apiData.plant) {
+    console.log("Using API data");
+    displayData = {
+      name: apiData.plant.species || "Unknown",
+      temperature: Number(apiData.universal?.room_temperature) || 0,
+      soil_moisture: Number(apiData.plant.soil_moisture) || 0,
+      sensor_number: apiData.plant.sensor_number || 0,
+      timestamp: apiData.plant.timestamp || "",
+      humidity: Number(apiData.universal?.room_humidity) || 0,
+      soil_temperature: Number(apiData.plant.temperature) || 0,
+      light: 0,
+      air_quality: Number(apiData.universal?.air_quality) || 0
+    };
+  } else if (data) {
+    console.log("Using local data");
+    displayData = data;
+  }
+
+  console.log("displayData:", displayData);
+
+  if (!displayData || !displayData.name) {
+    console.log("No display data available");
+    return null;
+  }
+
+  let health = { color: "#2E8B57", label: "Healthy" };
+  try {
+    health = evaluatePlantHealth(displayData);
+  } catch (err) {
+    console.error("Error evaluating plant health:", err);
+  }
 
   return (
     <div className="sensor-card-home-overlay" style={{ borderColor: health.color, boxShadow: `0 8px 32px ${health.color}33` }}>
       <div className="card-header">
-        <h2>{data.name || "Unknown Plant"}</h2>
+        <h2>{displayData.name || "Unknown Plant"}</h2>
         <div style={{
           fontSize: '0.9rem',
           color: health.color,
@@ -29,27 +65,27 @@ function SensorCard({ data }) {
       <div className="card-grid">
         <div className="card-item">
           <span className="label">Temp</span>
-          <span className="value">{data.temperature}°C</span>
+          <span className="value">{displayData.temperature}°C</span>
         </div>
         <div className="card-item">
           <span className="label">Humidity</span>
-          <span className="value">{data.humidity}%</span>
+          <span className="value">{displayData.humidity}%</span>
         </div>
         <div className="card-item">
           <span className="label">Soil Moisture</span>
-          <span className="value">{data.soil_moisture}%</span>
+          <span className="value">{displayData.soil_moisture}%</span>
         </div>
         <div className="card-item">
           <span className="label">Soil Temp</span>
-          <span className="value">{data.soil_temperature}°C</span>
+          <span className="value">{displayData.soil_temperature}°C</span>
         </div>
         <div className="card-item">
           <span className="label">Light</span>
-          <span className="value">{data.light} PAR</span>
+          <span className="value">{displayData.light} PAR</span>
         </div>
         <div className="card-item">
           <span className="label">Air Qual</span>
-          <span className="value">{data.air_quality} AQI</span>
+          <span className="value">{displayData.air_quality} AQI</span>
         </div>
       </div>
     </div>
@@ -171,13 +207,42 @@ export default function Home() {
   const [plantsData, setPlantsData] = useState([]);
   const [activePlantId, setActivePlantId] = useState("tomato"); // 'chilli', 'tomato', 'pea'
   const [hoveredPlantId, setHoveredPlantId] = useState(null);
+  const [speciesName, setSpeciesName] = useState("");
+  const [sensorNumber, setSensorNumber] = useState("");
+  const [fetchedData, setFetchedData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+  const [activeSpecies, setActiveSpecies] = useState(null);
+  const [activeSensor, setActiveSensor] = useState(null);
   const navigate = useNavigate();
 
-  // Poll backend
+  // Debug: Log when fetchedData changes
+  useEffect(() => {
+    console.log("fetchedData state updated:", fetchedData);
+  }, [fetchedData]);
+  const handleStartFetching = () => {
+    if (!speciesName.trim() || !sensorNumber) {
+      setError("Please enter both species name and sensor number");
+      return;
+    }
+
+    // Start the auto-fetch loop
+    setActiveSpecies(speciesName);
+    setActiveSensor(sensorNumber);
+    setIsAutoFetching(true);
+    setError(null);
+    console.log("Starting auto-fetch for:", speciesName, sensorNumber);
+  };
+
+  const handleStopFetching = () => {
+    setIsAutoFetching(false);
+    console.log("Stopped auto-fetch");
+  };
   useEffect(() => {
     const fetchSensors = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/sensors/all');
+        const res = await fetch(`https://gdt-2.onrender.com/api/sensors/all`);
         if (!res.ok) throw new Error("Backend not reachable");
         const data = await res.json();
         setPlantsData(data.plants || []);
@@ -193,11 +258,60 @@ export default function Home() {
     };
 
     fetchSensors();
-    const interval = setInterval(fetchSensors, 2000);
+    const interval = setInterval(fetchSensors, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  const getPlantData = (id) => plantsData.find(p => p.plant_id === id) || {};
+  // Auto-fetch sensor data every 10 seconds when isAutoFetching is true
+  useEffect(() => {
+    if (!isAutoFetching || !activeSpecies || !activeSensor) {
+      return;
+    }
+
+    const autoFetch = async () => {
+      try {
+        const url = `https://gdt-2.onrender.com/get_data/${activeSpecies}/${activeSensor}`;
+        console.log("Auto-fetching from:", url, "at", new Date().toLocaleTimeString());
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        console.log("Auto-fetched data:", data);
+        setFetchedData(data);
+        setError(null);
+      } catch (err) {
+        console.error("Auto-fetch error:", err);
+        setError(err.message);
+      }
+    };
+
+    // Fetch immediately
+    autoFetch();
+
+    // Set up interval for every 10 seconds
+    const interval = setInterval(autoFetch, 10000);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isAutoFetching, activeSpecies, activeSensor]);
+
+  const getPlantData = (id) => {
+    // If API data is fetched and active plant matches, use it; otherwise use local data
+    if (fetchedData && fetchedData.plant) {
+      // Map API data to match the expected format for plant components
+      return {
+        plant_id: id,
+        name: fetchedData.plant.species || "Unknown",
+        temperature: Number(fetchedData.universal?.room_temperature) || 0,
+        humidity: Number(fetchedData.universal?.room_humidity) || 0,
+        soil_moisture: Number(fetchedData.plant.soil_moisture) || 0,
+        soil_temperature: Number(fetchedData.plant.temperature) || 0,
+        light: 0,
+        air_quality: Number(fetchedData.universal?.air_quality) || 0
+      };
+    }
+    return plantsData.find(p => p.plant_id === id) || {};
+  };
 
   // Config for Carousel
   // Order: Chilli -> Tomato -> Pea -> Chilli
@@ -300,7 +414,7 @@ export default function Home() {
           </Canvas>
 
           {/* Overlay Card inside the border - Only shows for active plant */}
-          <SensorCard data={getPlantData(currentDisplayId)} />
+          <SensorCard data={getPlantData(currentDisplayId)} apiData={fetchedData} />
         </div>
 
         {/* Controls / Footer Area */}
@@ -309,11 +423,74 @@ export default function Home() {
             Viewing Data for: <span style={{ color: '#4A9B7F', fontWeight: 'bold' }}>{getPlantData(activePlantId).name}</span>
           </div>
 
+          {/* API Data Fetch Section */}
+          <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#1a2a2a', borderRadius: '8px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '12px' }}>Fetch Sensor Data</h3>
+            
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                placeholder="Species name (e.g., Tomato)"
+                value={speciesName}
+                onChange={(e) => setSpeciesName(e.target.value)}
+                style={{
+                  flex: 1,
+                  minWidth: '120px',
+                  padding: '8px 12px',
+                  backgroundColor: '#0f1f1f',
+                  color: '#fff',
+                  border: '1px solid #4A9B7F',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+              
+              <input
+                type="number"
+                placeholder="Sensor number"
+                value={sensorNumber}
+                onChange={(e) => setSensorNumber(e.target.value)}
+                style={{
+                  flex: 0.5,
+                  minWidth: '100px',
+                  padding: '8px 12px',
+                  backgroundColor: '#0f1f1f',
+                  color: '#fff',
+                  border: '1px solid #4A9B7F',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+
+              <button
+                onClick={isAutoFetching ? handleStopFetching : handleStartFetching}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: isAutoFetching ? '#d9534f' : '#4A9B7F',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {isAutoFetching ? 'Stop Fetching' : 'Start Fetching'}
+              </button>
+            </div>
+
+            {error && (
+              <div style={{ color: '#ff6b6b', marginBottom: '10px', fontSize: '14px' }}>
+                Error: {error}
+              </div>
+            )}
+          </div>
+
           <button
             className="btn-solid"
             onClick={() => navigate('/Sim')}
           >
-            Open Full Simulator
+            Open Full Simulator 
           </button>
         </div>
       </div>
