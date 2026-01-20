@@ -256,7 +256,7 @@ export default function Home() {
         ]);
       }
     };
-
+  
     fetchSensors();
     const interval = setInterval(fetchSensors, 10000);
     return () => clearInterval(interval);
