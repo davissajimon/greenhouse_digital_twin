@@ -1,4 +1,5 @@
 import React, { useState, useMemo, Suspense, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Simulator.css";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
@@ -13,8 +14,21 @@ function Loader() {
   return <Html center><div style={{ color: 'white' }}>Loading...</div></Html>;
 }
 
+function ErrorFallback() {
+  return (
+    <Html center>
+      <div style={{ color: '#ff6b6b', fontSize: '16px', textAlign: 'center' }}>
+        <p>Failed to load 3D model</p>
+        <p style={{ fontSize: '12px', opacity: 0.7 }}>Please try refreshing the page</p>
+      </div>
+    </Html>
+  );
+}
+
 export default function Simulator() {
+  const navigate = useNavigate();
   const [plant, setPlant] = useState("tomato");
+  const [hasError, setHasError] = useState(false);
   const [viewportSize, setViewportSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768
@@ -72,6 +86,31 @@ export default function Simulator() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handle page refresh - keep user on Simulator page if it loads successfully
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('simulatorActive', 'true');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Clear the flag on component unmount
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      sessionStorage.removeItem('simulatorActive');
+    };
+  }, []);
+
+  // Error boundary fallback
+  useEffect(() => {
+    if (hasError) {
+      const timer = setTimeout(() => {
+        setHasError(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasError]);
+
   return (
     <div className="sim-container">
       <Navbar />
@@ -80,29 +119,34 @@ export default function Simulator() {
 
         {/* Main 3D Viewport */}
         <div className="sim-viewport-wrapper" ref={viewportRef}>
-          <Canvas 
-            camera={{ position: [0, 1, 5], fov: 50 }} 
-            shadows
-            style={{ width: '100%', height: '100%' }}
-          >
-            <color attach="background" args={['#181a1b']} />
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
-            <Environment preset="city" />
+          {hasError ? (
+            <ErrorFallback />
+          ) : (
+            <Canvas 
+              camera={{ position: [0, 1, 5], fov: 50 }} 
+              shadows
+              style={{ width: '100%', height: '100%' }}
+              onError={() => setHasError(true)}
+            >
+              <color attach="background" args={['#181a1b']} />
+              <ambientLight intensity={0.6} />
+              <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+              <Environment preset="city" />
 
-            <Suspense fallback={<Loader />}>
-              {plant === "tomato" && <ThreeTomato data={controls} />}
-              {plant === "chilli" && <ThreeChilli data={controls} />}
-              {plant === "pea" && <ThreePea data={controls} />}
+              <Suspense fallback={<Loader />}>
+                {plant === "tomato" && <ThreeTomato data={controls} />}
+                {plant === "chilli" && <ThreeChilli data={controls} />}
+                {plant === "pea" && <ThreePea data={controls} />}
 
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-                <circleGeometry args={[10, 64]} />
-                <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
-              </mesh>
-            </Suspense>
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+                  <circleGeometry args={[10, 64]} />
+                  <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
+                </mesh>
+              </Suspense>
 
-            <OrbitControls minPolarAngle={0.5} maxPolarAngle={1.6} />
-          </Canvas>
+              <OrbitControls minPolarAngle={0.5} maxPolarAngle={1.6} />
+            </Canvas>
+          )}
 
           {/* HUD Overlay for Controls */}
           <div className="sim-controls-overlay">
