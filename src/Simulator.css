@@ -15,17 +15,19 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* Or row if we want side-by-side */
   padding: 20px 40px;
   position: relative;
   gap: 20px;
+  min-height: 0;
+  /* Ensures flex children respect height constraints */
 }
 
-/* The Big Viewport */
+/* The Big Viewport - Responsive Container */
 .sim-viewport-wrapper {
   flex: 1;
   min-height: 0;
   /* Important for flex nesting */
+  width: 100%;
   background: #181a1b;
   border: 4px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
@@ -33,6 +35,7 @@
   overflow: hidden;
   /* Canvas stays inside */
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
 }
 
 /* Floating HUD / Control Panel */
@@ -174,27 +177,79 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sim-content {
-    padding: 16px;
+    padding: 16px 24px;
+    gap: 16px;
   }
 
   .sim-controls-overlay {
-    position: relative;
-    width: 100%;
-    top: 0;
+    width: 280px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sim-content {
+    padding: 12px;
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .sim-controls-overlay {
+    position: fixed;
+    bottom: 0;
     right: 0;
-    max-height: none;
-    order: 2;
-    /* Put controls below canvas on mobile */
+    left: 0;
+    top: auto;
+    width: 100%;
+    max-height: 45vh;
+    border-radius: 20px 20px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    gap: 16px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
   }
 
   .sim-viewport-wrapper {
-    min-height: 50vh;
-    flex: none;
+    min-height: 55vh;
+    border-radius: 12px;
+    border-width: 2px;
+    padding-bottom: 45vh;
+    /* Account for controls panel */
   }
 
   .sim-container {
     overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .sim-content {
+    padding: 8px;
+  }
+
+  .sim-controls-overlay {
+    max-height: 50vh;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .sim-viewport-wrapper {
+    min-height: 50vh;
+    border-radius: 8px;
+    border-width: 2px;
+    padding-bottom: 50vh;
+  }
+
+  .sim-controls-overlay h2 {
+    font-size: 1.3rem;
+  }
+
+  .sim-select-group label,
+  .slider-header {
+    font-size: 0.8rem;
   }
 }

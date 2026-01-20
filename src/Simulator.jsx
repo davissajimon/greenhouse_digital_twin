@@ -1,4 +1,4 @@
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, Suspense, useEffect, useRef } from "react";
 import "./Simulator.css";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
@@ -15,6 +15,11 @@ function Loader() {
 
 export default function Simulator() {
   const [plant, setPlant] = useState("tomato");
+  const [viewportSize, setViewportSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768
+  });
+  const viewportRef = useRef(null);
 
   // Manual Sim State
   const [controls, setControls] = useState({
@@ -50,6 +55,23 @@ export default function Simulator() {
   // Evaluate Health Real-time
   const healthStatus = useMemo(() => evaluatePlantHealth(controls), [controls]);
 
+  // Handle window resize for responsive scaling
+  useEffect(() => {
+    const handleResize = () => {
+      if (viewportRef.current) {
+        const width = viewportRef.current.clientWidth;
+        const height = viewportRef.current.clientHeight;
+        setViewportSize({ width, height });
+      }
+    };
+
+    // Initial size
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="sim-container">
       <Navbar />
@@ -57,8 +79,12 @@ export default function Simulator() {
       <div className="sim-content">
 
         {/* Main 3D Viewport */}
-        <div className="sim-viewport-wrapper">
-          <Canvas camera={{ position: [0, 1, 5], fov: 50 }} shadows>
+        <div className="sim-viewport-wrapper" ref={viewportRef}>
+          <Canvas 
+            camera={{ position: [0, 1, 5], fov: 50 }} 
+            shadows
+            style={{ width: '100%', height: '100%' }}
+          >
             <color attach="background" args={['#181a1b']} />
             <ambientLight intensity={0.6} />
             <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
