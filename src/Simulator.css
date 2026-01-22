@@ -1,13 +1,23 @@
-/* Simulator.css */
-/* Reusing Home container basics but specific to Simulator needs */
+/* Simulator.css - Matching Professional Dashboard Theme */
 
+/* Import matching vars manually or rely on them being similar */
+:root {
+  --bg-dark: #0d1117;
+  --panel-bg: #161b22;
+  --border-color: #30363d;
+  --accent-green: #238636;
+  --text-primary: #c9d1d9;
+  --text-white: #ffffff;
+}
+
+/* Reusing the Main Layout from Home.css concept */
 .sim-container {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background: var(--bg-gradient);
-  /* Inherit from App/Home vars */
+  flex-direction: column;
+  background: var(--bg-dark);
+  font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 
@@ -15,241 +25,246 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px 40px;
-  position: relative;
-  gap: 20px;
-  min-height: 0;
-  /* Ensures flex children respect height constraints */
+  overflow: hidden;
+  /* Prevent double scroll */
 }
 
-/* The Big Viewport - Responsive Container */
+/* Visualization Area */
 .sim-viewport-wrapper {
   flex: 1;
-  min-height: 0;
-  /* Important for flex nesting */
-  width: 100%;
-  background: #181a1b;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
   position: relative;
-  overflow: hidden;
-  /* Canvas stays inside */
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  display: flex;
+  min-height: 50vh;
+  background: #000;
 }
 
-/* Floating HUD / Control Panel */
+/* Modern Controls Panel styling */
 .sim-controls-overlay {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 320px;
-  max-height: calc(100% - 40px);
-  background: rgba(30, 40, 55, 0.95);
-  /* Dark Glass */
+  width: 100%;
+  background: rgba(22, 27, 34, 0.95);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  border-top: 1px solid var(--border-color);
+  padding: 32px;
   overflow-y: auto;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  color: #fff;
-}
-
-[data-theme="light"] .sim-controls-overlay {
-  background: rgba(255, 255, 255, 0.95);
-  color: #333;
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-/* Plant Selector */
-.sim-select-group {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
+/* Desktop Split */
+@media (min-width: 1024px) {
+  .sim-content {
+    flex-direction: row;
+  }
+
+  .sim-viewport-wrapper {
+    flex: 2;
+    height: 100%;
+  }
+
+  .sim-controls-overlay {
+    flex: 1;
+    max-width: 420px;
+    height: 100%;
+    border-top: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Typography */
+h2 {
+  margin: 0 0 24px 0;
+  color: var(--text-white);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #fff, #aeb6bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Form Elements */
 .sim-select-group label {
-  font-size: 0.85rem;
+  display: block;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
   font-weight: 600;
-  opacity: 0.7;
 }
 
 .sim-dropdown {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: inherit;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(13, 17, 23, 0.6);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  border-radius: 12px;
   font-size: 1rem;
-  outline: none;
+  transition: all 0.2s ease;
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
 }
 
-[data-theme="light"] .sim-dropdown {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
+.sim-dropdown:hover,
+.sim-dropdown:focus {
+  border-color: var(--accent-green);
+  outline: none;
+  background-color: rgba(13, 17, 23, 0.9);
 }
 
-/* Sliders */
+/* Status Box */
+.sim-status {
+  padding: 18px;
+  background: rgba(33, 38, 45, 0.6);
+  border-radius: 12px;
+  border-left: 4px solid transparent;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.sim-status:hover {
+  transform: translateY(-2px);
+}
+
+.status-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.status-value {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
+}
+
+/* Sliders Container */
 .sim-slider-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 28px;
+  padding: 10px 0;
 }
 
 .slider-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
 }
 
 .slider-header {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
-  font-weight: 500;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--text-primary);
 }
 
 .slider-value {
-  font-family: monospace;
-  font-weight: bold;
-  color: var(--primary, #4A9B7F);
+  font-weight: 600;
+  color: var(--accent-green);
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: rgba(35, 134, 54, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 
+/* Premium Range Sliders */
 input[type=range] {
-  width: 100%;
   -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+  height: 24px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Track */
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  outline: none;
+  background: #30363d;
+  border-radius: 6px;
+  transition: background 0.2s;
 }
 
-[data-theme="light"] input[type=range] {
-  background: rgba(0, 0, 0, 0.1);
+input[type=range]:hover::-webkit-slider-runnable-track {
+  background: #3c444d;
 }
 
+/* Thumb */
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  height: 20px;
+  width: 20px;
   border-radius: 50%;
-  background: #4A9B7F;
-  cursor: pointer;
-  transition: transform 0.1s;
+  background: #ffffff;
+  margin-top: -7px;
+  /* (6px track height - 20px thumb height) / 2 */
+  box-shadow: 0 0 0 4px rgba(35, 134, 54, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s, box-shadow 0.2s;
+  border: none;
 }
 
-input[type=range]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+input[type=range]:hover::-webkit-slider-thumb {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 6px rgba(35, 134, 54, 0.4), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* Status Indicator */
-.sim-status {
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border-left: 4px solid transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+input[type=range]:active::-webkit-slider-thumb {
+  transform: scale(1.0);
+  background: var(--accent-green);
+  box-shadow: 0 0 0 8px rgba(35, 134, 54, 0.2);
 }
 
-[data-theme="light"] .sim-status {
-  background: rgba(0, 0, 0, 0.05);
+/* Firefox Styles */
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: #30363d;
+  border-radius: 6px;
 }
 
-.status-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  opacity: 0.7;
+input[type=range]::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(35, 134, 54, 0.3);
+  transition: transform 0.1s, box-shadow 0.2s;
 }
 
-.status-value {
-  font-size: 1.1rem;
-  font-weight: 700;
+input[type=range]:hover::-moz-range-thumb {
+  transform: scale(1.1);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .sim-content {
-    padding: 16px 24px;
-    gap: 16px;
-  }
-
-  .sim-controls-overlay {
-    width: 280px;
-    padding: 20px;
-  }
+/* Scrollbar Customization */
+.sim-controls-overlay::-webkit-scrollbar {
+  width: 8px;
 }
 
-@media (max-width: 768px) {
-  .sim-content {
-    padding: 12px;
-    gap: 12px;
-    flex-direction: column;
-  }
-
-  .sim-controls-overlay {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    top: auto;
-    width: 100%;
-    max-height: 45vh;
-    border-radius: 20px 20px 0 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 16px;
-    gap: 16px;
-    overflow-y: auto;
-    z-index: 100;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  .sim-viewport-wrapper {
-    min-height: 55vh;
-    border-radius: 12px;
-    border-width: 2px;
-    padding-bottom: 45vh;
-    /* Account for controls panel */
-  }
-
-  .sim-container {
-    overflow-y: auto;
-  }
+.sim-controls-overlay::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-@media (max-width: 480px) {
-  .sim-content {
-    padding: 8px;
-  }
+.sim-controls-overlay::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
 
-  .sim-controls-overlay {
-    max-height: 50vh;
-    padding: 12px;
-    gap: 12px;
-  }
-
-  .sim-viewport-wrapper {
-    min-height: 50vh;
-    border-radius: 8px;
-    border-width: 2px;
-    padding-bottom: 50vh;
-  }
-
-  .sim-controls-overlay h2 {
-    font-size: 1.3rem;
-  }
-
-  .sim-select-group label,
-  .slider-header {
-    font-size: 0.8rem;
-  }
+.sim-controls-overlay::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
 }

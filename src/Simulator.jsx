@@ -93,7 +93,7 @@ export default function Simulator() {
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
+
     // Clear the flag on component unmount
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -122,8 +122,8 @@ export default function Simulator() {
           {hasError ? (
             <ErrorFallback />
           ) : (
-            <Canvas 
-              camera={{ position: [0, 1, 5], fov: 50 }} 
+            <Canvas
+              camera={{ position: [0, 1, 5], fov: 50 }}
               shadows
               style={{ width: '100%', height: '100%' }}
               onError={() => setHasError(true)}
@@ -148,109 +148,110 @@ export default function Simulator() {
             </Canvas>
           )}
 
-          {/* HUD Overlay for Controls */}
-          <div className="sim-controls-overlay">
-            <h2>Simulation Lab</h2>
+        </div>
 
-            {/* Plant Selector */}
-            <div className="sim-select-group">
-              <label>Selected Plant</label>
-              <select
-                value={plant}
-                onChange={(e) => setPlant(e.target.value)}
-                className="sim-dropdown"
-              >
-                <option value="tomato">Tomato Plant</option>
-                <option value="chilli">Chilli Plant</option>
-                <option value="pea">Pea Plant</option>
-              </select>
+        {/* HUD Overlay for Controls */}
+        <div className="sim-controls-overlay">
+          <h2>Simulation Lab</h2>
+
+          {/* Plant Selector */}
+          <div className="sim-select-group">
+            <label>Selected Plant</label>
+            <select
+              value={plant}
+              onChange={(e) => setPlant(e.target.value)}
+              className="sim-dropdown"
+            >
+              <option value="tomato">Tomato Plant</option>
+              <option value="chilli">Chilli Plant</option>
+              <option value="pea">Pea Plant</option>
+            </select>
+          </div>
+
+          {/* Status Indicator */}
+          <div className="sim-status" style={{ borderLeftColor: healthStatus.color }}>
+            <span className="status-label">Detected Condition</span>
+            <span className="status-value" style={{ color: healthStatus.color }}>
+              {healthStatus.label}
+            </span>
+          </div>
+
+          {/* Correlation Feedback */}
+          {correlationMsg && (
+            <div style={{
+              marginTop: '12px', padding: '8px 12px', background: 'rgba(74, 155, 127, 0.2)',
+              border: '1px solid #4A9B7F', borderRadius: '6px', fontSize: '0.85rem', color: '#8FBC8F',
+              animation: 'fadeIn 0.3s'
+            }}>
+              ℹ️ {correlationMsg}
+            </div>
+          )}
+
+          {/* Sliders */}
+          <div className="sim-slider-group">
+            <div className="slider-item">
+              <div className="slider-header">
+                <span>Air Temp</span>
+                <span className="slider-value">{controls.temperature}°C</span>
+              </div>
+              <input
+                type="range" min="-20" max="70" step="0.5"
+                value={controls.temperature}
+                onChange={(e) => updateControl("temperature", e.target.value)}
+              />
             </div>
 
-            {/* Status Indicator */}
-            <div className="sim-status" style={{ borderLeftColor: healthStatus.color }}>
-              <span className="status-label">Detected Condition</span>
-              <span className="status-value" style={{ color: healthStatus.color }}>
-                {healthStatus.label}
-              </span>
+            <div className="slider-item">
+              <div className="slider-header">
+                <span>Humidity</span>
+                <span className="slider-value">{controls.humidity}%</span>
+              </div>
+              <input
+                type="range" min="0" max="100" step="1"
+                value={controls.humidity}
+                onChange={(e) => updateControl("humidity", e.target.value)}
+              />
             </div>
 
-            {/* Correlation Feedback */}
-            {correlationMsg && (
-              <div style={{
-                marginTop: '12px', padding: '8px 12px', background: 'rgba(74, 155, 127, 0.2)',
-                border: '1px solid #4A9B7F', borderRadius: '6px', fontSize: '0.85rem', color: '#8FBC8F',
-                animation: 'fadeIn 0.3s'
-              }}>
-                ℹ️ {correlationMsg}
+            <div className="slider-item">
+              <div className="slider-header">
+                <span>Soil Moisture</span>
+                <span className="slider-value">{controls.soil_moisture}%</span>
               </div>
-            )}
-
-            {/* Sliders */}
-            <div className="sim-slider-group">
-              <div className="slider-item">
-                <div className="slider-header">
-                  <span>Air Temp</span>
-                  <span className="slider-value">{controls.temperature}°C</span>
-                </div>
-                <input
-                  type="range" min="-20" max="70" step="0.5"
-                  value={controls.temperature}
-                  onChange={(e) => updateControl("temperature", e.target.value)}
-                />
-              </div>
-
-              <div className="slider-item">
-                <div className="slider-header">
-                  <span>Humidity</span>
-                  <span className="slider-value">{controls.humidity}%</span>
-                </div>
-                <input
-                  type="range" min="0" max="100" step="1"
-                  value={controls.humidity}
-                  onChange={(e) => updateControl("humidity", e.target.value)}
-                />
-              </div>
-
-              <div className="slider-item">
-                <div className="slider-header">
-                  <span>Soil Moisture</span>
-                  <span className="slider-value">{controls.soil_moisture}%</span>
-                </div>
-                <input
-                  type="range" min="0" max="100" step="1"
-                  value={controls.soil_moisture}
-                  onChange={(e) => updateControl("soil_moisture", e.target.value)}
-                />
-              </div>
-
-              <div className="slider-item">
-                <div className="slider-header">
-                  <span>Soil Temp</span>
-                  <span className="slider-value">{controls.soil_temperature}°C</span>
-                </div>
-                <input
-                  type="range" min="-10" max="40" step="1"
-                  value={controls.soil_temperature}
-                  onChange={(e) => updateControl("soil_temperature", e.target.value)}
-                />
-              </div>
-
-              <div className="slider-item">
-                <div className="slider-header">
-                  <span>Light</span>
-                  <span className="slider-value">{controls.light}</span>
-                </div>
-                <input
-                  type="range" min="0" max="1500" step="50"
-                  value={controls.light}
-                  onChange={(e) => updateControl("light", e.target.value)}
-                />
-              </div>
+              <input
+                type="range" min="0" max="100" step="1"
+                value={controls.soil_moisture}
+                onChange={(e) => updateControl("soil_moisture", e.target.value)}
+              />
             </div>
 
-            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '10px' }}>
-              Adjust sliders to trigger conditions like Frost, Heat Stress, Root Rot, etc.
+            <div className="slider-item">
+              <div className="slider-header">
+                <span>Soil Temp</span>
+                <span className="slider-value">{controls.soil_temperature}°C</span>
+              </div>
+              <input
+                type="range" min="-10" max="40" step="1"
+                value={controls.soil_temperature}
+                onChange={(e) => updateControl("soil_temperature", e.target.value)}
+              />
             </div>
+
+            <div className="slider-item">
+              <div className="slider-header">
+                <span>Light</span>
+                <span className="slider-value">{controls.light}</span>
+              </div>
+              <input
+                type="range" min="0" max="1500" step="50"
+                value={controls.light}
+                onChange={(e) => updateControl("light", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '10px' }}>
+            Adjust sliders to trigger conditions like Frost, Heat Stress, Root Rot, etc.
           </div>
         </div>
 

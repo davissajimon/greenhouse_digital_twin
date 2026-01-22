@@ -22,8 +22,7 @@ const Loginpage = ({ onLogin }) => {
     }
     setError("");
     return true;
-    setError("");
-    return true;
+
   };
 
   const handleSubmit = (e) => {

@@ -1,11 +1,14 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDarkMode } from "./DarkModeContext";
 import "./Navbar.css";
 
 export default function MainNavbar({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+
+  const isActive = (path) => location.pathname === path ? 'active' : '';
 
   return (
     <nav className="navbar-main">
@@ -14,6 +17,13 @@ export default function MainNavbar({ user, onLogout }) {
         <div className="navbar-brand" onClick={() => navigate("/")}>
           <span className="navbar-logo">🌱</span>
           <span className="navbar-title">Calathe</span>
+        </div>
+
+        {/* Center Navigation Links */}
+        <div className="navbar-links">
+          <button className={`nav-link ${isActive('/')}`} onClick={() => navigate("/")}>Home</button>
+          <button className={`nav-link ${isActive('/Sim')}`} onClick={() => navigate("/Sim")}>Simulator</button>
+          <button className={`nav-link ${isActive('/scalability')}`} onClick={() => navigate("/scalability")}>Scalability</button>
         </div>
 
         {/* Right Section */}
@@ -26,7 +36,7 @@ export default function MainNavbar({ user, onLogout }) {
             </div>
 
             {/* Theme Toggle */}
-            <button 
+            <button
               className="navbar-theme-toggle"
               onClick={toggleDarkMode}
               title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}

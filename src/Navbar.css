@@ -172,8 +172,53 @@ body {
   padding-top: var(--navbar-height);
 }
 
+/* Navigation Links Styling */
+.navbar-links {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.nav-link {
+  background: transparent;
+  border: none;
+  color: var(--navbar-text);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 15px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.nav-link:hover {
+  background: var(--navbar-hover);
+  color: var(--navbar-accent);
+}
+
+.nav-link.active {
+  background: linear-gradient(135deg, var(--navbar-accent) 0%, #1B4D3E 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive Design */
+@media (max-width: 900px) {
+  .navbar-links {
+    position: static;
+    transform: none;
+  }
+}
+
 @media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+    /* Hide on mobile for now */
+  }
+
   .navbar-container {
     padding: 0 16px;
     gap: 12px;
