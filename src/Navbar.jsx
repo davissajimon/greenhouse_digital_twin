@@ -1,22 +1,21 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDarkMode } from "./DarkModeContext";
+
 import "./Navbar.css";
 
-export default function MainNavbar({ user, onLogout }) {
+export default function MainNavbar({ visible = true }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
   return (
-    <nav className="navbar-main">
+    <nav className={`navbar-main ${visible ? '' : 'hidden'}`}>
       <div className="navbar-container">
         {/* Brand Section */}
         <div className="navbar-brand" onClick={() => navigate("/")}>
           <span className="navbar-logo">🌱</span>
-          <span className="navbar-title">Calathe</span>
+          <span className="navbar-title">GDT</span>
         </div>
 
         {/* Center Navigation Links */}
@@ -25,38 +24,6 @@ export default function MainNavbar({ user, onLogout }) {
           <button className={`nav-link ${isActive('/Sim')}`} onClick={() => navigate("/Sim")}>Simulator</button>
           <button className={`nav-link ${isActive('/scalability')}`} onClick={() => navigate("/scalability")}>Scalability</button>
         </div>
-
-        {/* Right Section */}
-        {user && (
-          <div className="navbar-right">
-            {/* User Info */}
-            <div className="navbar-user-info">
-              <span className="navbar-user-label">Welcome,</span>
-              <span className="navbar-user-name">{user.name}</span>
-            </div>
-
-            {/* Theme Toggle */}
-            <button
-              className="navbar-theme-toggle"
-              onClick={toggleDarkMode}
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              aria-label="Toggle dark mode"
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
-
-            {/* Logout Button */}
-            <button
-              className="navbar-logout-btn"
-              onClick={() => {
-                if (onLogout) onLogout();
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        )}
       </div>
     </nav>
   );

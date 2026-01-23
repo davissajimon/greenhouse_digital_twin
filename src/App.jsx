@@ -10,76 +10,32 @@ import { DarkModeProvider } from "./DarkModeContext";
 
 const ScalabilityTest = React.lazy(() => import("./scalability_test"));
 
-// Wrapper for protected routes
-const ProtectedRoute = ({ user, children }) => {
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
-
 function App() {
-  const [user, setUser] = useState(null);
-
-  // Check login status on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("app_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem("app_user", JSON.stringify(userData));
-    localStorage.setItem("isAuthenticated", "true");
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("app_user");
-    localStorage.removeItem("isAuthenticated");
-  };
+  const [navVisible, setNavVisible] = useState(true);
 
   return (
     <DarkModeProvider>
+      <div className="cinematic-noise"></div>
       <Router>
-        <MainNavbar user={user} onLogout={handleLogout} />
+        <MainNavbar visible={navVisible} />
 
         <Routes>
           <Route
             path="/"
-            element={
-              <ProtectedRoute user={user}>
-                <Home />
-              </ProtectedRoute>
-            }
+            element={<Home setNavVisible={setNavVisible} />}
           />
 
           <Route
             path="/Sim"
-            element={
-              <ProtectedRoute user={user}>
-                <Simulator />
-              </ProtectedRoute>
-            }
+            element={<Simulator />}
           />
 
           <Route
             path="/scalability"
             element={
-              <ProtectedRoute user={user}>
-                <React.Suspense fallback={<div style={{ color: 'white', textAlign: 'center', marginTop: '20%' }}>Loading Scalability Test...</div>}>
-                  <ScalabilityTest />
-                </React.Suspense>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/login"
-            element={
-              user ? <Navigate to="/" replace /> : <Loginpage onLogin={handleLogin} />
+              <React.Suspense fallback={<div style={{ color: 'white', textAlign: 'center', marginTop: '20%' }}>Loading Scalability Test...</div>}>
+                <ScalabilityTest />
+              </React.Suspense>
             }
           />
         </Routes>
@@ -102,7 +58,7 @@ import { useLocation } from "react-router-dom";
 const FooterWrapper = () => {
   const location = useLocation();
   // Hide footer on Home ('/') and Scalability ('/scalability') as per "Focused" requests
-  if (location.pathname === '/' || location.pathname === '/scalability') return null;
+  if (location.pathname === '/' || location.pathname === '/scalability' || location.pathname === '/Sim') return null;
   return <Footer />;
 }
 

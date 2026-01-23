@@ -9,6 +9,7 @@ import { ThreeChilli } from "./components/ThreeChilli";
 import { ThreePea } from "./components/ThreePea";
 import { API_BASE_URL } from "./config";
 
+
 // --- GREENHOUSE ENVIRONMENT ---
 function Greenhouse() {
   const glassMaterial = (
@@ -72,10 +73,10 @@ function CameraController({ viewMode, targetX }) {
     // Note: Since we use OrbitControls, we shouldn't fight its position blindly,
     // but for the transition "lerp", we apply forces.
 
-    const targetCamZ = viewMode === 'overview' ? 6 : 2.5;
+    const targetCamZ = viewMode === 'overview' ? 3.8 : 2.2;
     const targetCamPos = viewMode === 'overview'
-      ? new THREE.Vector3(0, 2, targetCamZ)
-      : new THREE.Vector3(targetX, 1, targetCamZ);
+      ? new THREE.Vector3(0, 2.0, targetCamZ)
+      : new THREE.Vector3(targetX, 0.8, targetCamZ);
 
     // LookAt Target (Orbit Pivot)
     const targetLookAt = viewMode === 'overview'
@@ -96,7 +97,32 @@ function CameraController({ viewMode, targetX }) {
   return null;
 }
 
-function PlantItem({ ItemConfig, index, isActive, isFocused, onClick }) {
+const HologramData = ({ data, title }) => (
+  <div className="hologram-panel">
+    <div className="holo-header">{title}</div>
+    <div className="holo-grid">
+      <div className="holo-item">
+        <span className="holo-label">AIR TEMP</span>
+        <span className="holo-value">{data?.temperature || 24}<small>°C</small></span>
+      </div>
+      <div className="holo-item">
+        <span className="holo-label">HUMIDITY</span>
+        <span className="holo-value">{data?.humidity || 60}<small>%</small></span>
+      </div>
+      <div className="holo-item">
+        <span className="holo-label">SOIL MOIST</span>
+        <span className="holo-value">{data?.soil_moisture || 45}<small>%</small></span>
+      </div>
+      <div className="holo-item">
+        <span className="holo-label">SOIL TEMP</span>
+        <span className="holo-value">{data?.soil_temperature || 20}<small>°C</small></span>
+      </div>
+    </div>
+    <div className="holo-footer">STATUS: OPTIMAL</div>
+  </div>
+);
+
+function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData }) {
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
   const Component = ItemConfig.Component;
@@ -108,50 +134,64 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick }) {
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      <Component />
-      <Html position={[0, 2.5, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
-        <div
-          className="plant-label-chip"
-          style={{
-            opacity: (hovered || (isActive && isFocused)) ? 1 : 0.6,
-            transform: `scale(${(isActive && isFocused) ? 1.2 : 1})`
-          }}
-        >
-          {ItemConfig.name}
-        </div>
-      </Html>
+      <Component data={sensorData} />
+
+      {/* Label Chip (Always visible unless focused) */}
+      {!isFocused && (
+        <Html position={[0, 2.5, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+          <div
+            className="plant-label-chip"
+            style={{
+              opacity: hovered ? 1 : 0.6,
+              transform: `scale(${hovered ? 1.1 : 1})`
+            }}
+          >
+            {ItemConfig.name}
+          </div>
+        </Html>
+      )}
+
+      {/* Hologram View (Only when Focused) */}
+      {isActive && isFocused && (
+        <Html position={[0.9, 0.8, 0]} center rotateZ={0} distanceFactor={1.2} transform>
+          <HologramData data={sensorData} title={ItemConfig.name} />
+        </Html>
+      )}
     </group>
   );
 }
 
 // --- UI COMPONENTS ---
 
+import { useNavigate } from "react-router-dom";
+
 function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
   const [species, setSpecies] = useState(plant?.name || "");
   const [sensorId, setSensorId] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (plant) setSpecies(plant.name);
   }, [plant]);
 
   return (
-    <div className={`sidebar-panel ${visible ? 'visible' : ''}`}>
+    <div className={`sidebar-panel glass-panel ${visible ? 'visible' : ''}`}>
       <button className="close-btn" onClick={onClose}>&times;</button>
       {plant && (
         <>
           <div className="sidebar-header">
             <h2>{plant.name}</h2>
-            <div className="subtitle">Unit ID: {plant.id.toUpperCase()}_01</div>
           </div>
+
           <div className="data-group">
-            <h3>Live Sensor Data</h3>
-            <div className="value-grid">
-              <div className="value-card"><label>Temperature</label><div className="val">{apiState.data?.temperature || 24}°C</div></div>
-              <div className="value-card"><label>Humidity</label><div className="val">{apiState.data?.humidity || 60}%</div></div>
-              <div className="value-card"><label>Soil Moisture</label><div className="val">{apiState.data?.soil || 45}%</div></div>
-              <div className="value-card"><label>Health</label><div className="val" style={{ color: '#4caf50' }}>Good</div></div>
+            <h3>Diagnostic Tips</h3>
+            <div className="tips-box">
+              <p><strong>Condition:</strong> Normal</p>
+              <p style={{ marginTop: '8px', opacity: 0.8 }}>No issues detected. Maintain current irrigation and lighting schedules.</p>
+              <div className="tip-alert">! Protocol: Monitoring Active</div>
             </div>
           </div>
+
           <div className="data-group">
             <h3>Connection Settings</h3>
             <input className="input-field" placeholder="Species Name" value={species} onChange={(e) => setSpecies(e.target.value)} />
@@ -161,20 +201,13 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
             </button>
             {apiState.error && <p style={{ color: 'red', fontSize: '0.8rem', marginTop: '10px' }}>{apiState.error}</p>}
           </div>
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             <button style={{
-              background: 'transparent', border: '1px solid #444', color: '#888', width: '100%', padding: '12px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'
-            }} onClick={() => window.location.href = '/scalability'}
-              onMouseOver={(e) => { e.target.style.borderColor = '#888'; e.target.style.color = '#fff' }}
-              onMouseOut={(e) => { e.target.style.borderColor = '#444'; e.target.style.color = '#888' }}
-            >
-              View Scalability Test &rarr;
-            </button>
-            <button style={{
-              background: 'transparent', border: '1px solid #444', color: '#888', width: '100%', padding: '12px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s'
-            }} onClick={() => window.location.href = '/Sim'}
-              onMouseOver={(e) => { e.target.style.borderColor = '#888'; e.target.style.color = '#fff' }}
-              onMouseOut={(e) => { e.target.style.borderColor = '#444'; e.target.style.color = '#888' }}
+              background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#fff', width: '100%', padding: '12px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(4px)'
+            }} onClick={() => navigate('/Sim')}
+              onMouseOver={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.2)'; }}
+              onMouseOut={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.1)'; }}
             >
               Open Lab Simulator &rarr;
             </button>
@@ -185,23 +218,23 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
   );
 }
 
-export default function Home() {
+export default function Home({ setNavVisible }) {
   const [activeIndex, setActiveIndex] = useState(1);
   const [viewMode, setViewMode] = useState('overview');
   const [apiState, setApiState] = useState({ isFetching: false, data: null, error: null });
   const [connectionParams, setConnectionParams] = useState({ species: '', id: '' });
 
-  const handlePlantClick = (index) => { setActiveIndex(index); setViewMode('focus'); };
+  const handlePlantClick = (index) => { setActiveIndex(index); setViewMode('focus'); setNavVisible(false); };
   const handleNext = () => { setActiveIndex((prev) => (prev + 1) % PLANTS.length); };
   const handlePrev = () => { setActiveIndex((prev) => (prev - 1 + PLANTS.length) % PLANTS.length); };
-  const handleCloseFocus = () => { setViewMode('overview'); };
+  const handleCloseFocus = () => { setViewMode('overview'); setNavVisible(true); };
 
   useEffect(() => {
     const handleKey = (e) => {
       if (viewMode === 'overview') return;
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'Escape') setViewMode('overview');
+      if (e.key === 'Escape') { setViewMode('overview'); setNavVisible(true); }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -227,9 +260,12 @@ export default function Home() {
         setApiState(s => ({
           ...s,
           data: {
-            temperature: json.universal?.room_temperature || 0,
-            humidity: json.universal?.room_humidity || 0,
-            soil: json.plant?.soil_moisture || 0
+            room_temperature: json.universal?.room_temperature || 0,
+            room_humidity: json.universal?.room_humidity || 0,
+            light_intensity: json.universal?.light_intensity || 0,
+            air_quality: json.universal?.air_quality || 0,
+            soil_moisture: json.plant?.soil_moisture || 0,
+            soil_temperature: json.plant?.temperature || 0
           }
         }));
       } catch (e) { console.warn(e); }
@@ -239,14 +275,23 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [apiState.isFetching, connectionParams]);
 
+  // Transform api data for 3D components
+  const sensorData = apiState.data ? {
+    temperature: apiState.data.room_temperature,
+    humidity: apiState.data.room_humidity,
+    soil_moisture: apiState.data.soil_moisture,
+    soil_temperature: apiState.data.soil_temperature
+  } : null;
+
   return (
-    <div className="app-layout">
+    <div className="app-layout" style={{ height: 'calc(100vh - 64px)' }}>
       <Canvas className="webgl-canvas" shadows dpr={1}>
-        <color attach="background" args={['#050505']} />
-        <fog attach="fog" args={['#050505', 5, 25]} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
-        <Environment preset="night" />
+        <color attach="background" args={['#101827']} />
+
+        <ambientLight intensity={1.5} />
+        <pointLight position={[0, 5, 5]} intensity={5} distance={20} decay={2} />
+        <directionalLight position={[5, 10, 5]} intensity={3} castShadow />
+        <Environment preset="city" />
 
         {/* Interactive Controls */}
         <OrbitControls makeDefault enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
@@ -266,12 +311,13 @@ export default function Home() {
                 isActive={i === activeIndex}
                 isFocused={viewMode === 'focus'}
                 onClick={handlePlantClick}
+                sensorData={sensorData}
               />
             ))}
             {/* Floor */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
               <planeGeometry args={[50, 50]} />
-              <meshStandardMaterial color="#111" roughness={0.6} />
+              <meshStandardMaterial color="#020202" roughness={0.6} />
             </mesh>
             <gridHelper args={[50, 50, '#333', '#111']} />
             <Greenhouse />
@@ -280,11 +326,22 @@ export default function Home() {
         </Suspense>
       </Canvas>
 
-      <div className="visual-header">
-        <h2>Greenhouse Twin</h2>
-        <div className="indicators">
-          <div className="ind">Interactive Mode</div>
-          {apiState.isFetching && <div className="ind" style={{ color: '#4caf50' }}>● Live</div>}
+      <div className={`hero-overlay cinematic-fade-enter ${viewMode === 'focus' ? 'hidden' : ''}`}>
+        <div className="hero-content">
+          <div className="hero-badge">AUTOMATION REIMAGINED</div>
+          <h1 className="text-hero">DIGITAL TWIN<br />GREENHOUSE</h1>
+          <p className="text-sub">
+            A living ecosystem simulated in real-time.
+            <br />
+            Experience the future of sustainable agriculture.
+          </p>
+        </div>
+
+        <div className="hero-controls">
+          <div className="scroll-indicator">
+            <span className="scroll-text">INTERACTIVE VIEW</span>
+            <div className="scroll-line"></div>
+          </div>
         </div>
       </div>
 

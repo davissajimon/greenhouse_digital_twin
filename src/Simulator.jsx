@@ -6,7 +6,6 @@ import { OrbitControls, Environment, Html } from "@react-three/drei";
 import { ThreeTomato } from "./components/ThreeTomato";
 import { ThreeChilli } from "./components/ThreeChilli";
 import { ThreePea } from "./components/ThreePea";
-import Navbar from "./Navbar";
 import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 import { applyEdgeCorrections } from "./utils/SensorCorrelations";
 
@@ -113,7 +112,6 @@ export default function Simulator() {
 
   return (
     <div className="sim-container">
-      <Navbar />
 
       <div className="sim-content">
 

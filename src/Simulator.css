@@ -1,24 +1,18 @@
-/* Simulator.css - Matching Professional Dashboard Theme */
+/* Simulator.css - Cinematic Dashboard */
 
-/* Import matching vars manually or rely on them being similar */
-:root {
-  --bg-dark: #0d1117;
-  --panel-bg: #161b22;
-  --border-color: #30363d;
-  --accent-green: #238636;
-  --text-primary: #c9d1d9;
-  --text-white: #ffffff;
-}
-
-/* Reusing the Main Layout from Home.css concept */
 .sim-container {
   display: flex;
   height: 100vh;
   width: 100vw;
   flex-direction: column;
-  background: var(--bg-dark);
-  font-family: 'Inter', sans-serif;
+  background: var(--c-bg-dark);
+  font-family: var(--font-hero);
   overflow: hidden;
+  position: relative;
+  /* Cinematic Entry */
+  opacity: 0;
+  transform: scale(1.02);
+  animation: cinematicFadeIn 1s var(--ease-cinematic) forwards;
 }
 
 .sim-content {
@@ -26,7 +20,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* Prevent double scroll */
+  padding-top: 80px;
+  /* Spacer for fixed floating navbar */
 }
 
 /* Visualization Area */
@@ -34,28 +29,86 @@
   flex: 1;
   position: relative;
   min-height: 50vh;
-  background: #000;
+  background: transparent;
+  /* Allow canvas background to show */
 }
 
-/* Modern Controls Panel styling */
+/* Controls Panel - Glassmorphism */
 .sim-controls-overlay {
   width: 100%;
-  background: rgba(22, 27, 34, 0.95);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border-color);
+  background: rgba(20, 20, 25, 0.45);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 32px;
   overflow-y: auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 24px;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+/* ... (Media Query remains separate block below) ... */
+
+/* ... (Typography) ... */
+
+/* Form Elements */
+.sim-select-group label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--c-text-secondary);
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.sim-dropdown {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+  font-family: var(--font-hero);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sim-dropdown:hover,
+.sim-dropdown:focus {
+  border-color: var(--c-accent);
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+/* Status Box */
+.sim-status {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
 }
 
 /* Desktop Split */
 @media (min-width: 1024px) {
   .sim-content {
     flex-direction: row;
+    padding-top: 0;
+    /* Full height split */
   }
 
   .sim-viewport-wrapper {
@@ -65,206 +118,80 @@
 
   .sim-controls-overlay {
     flex: 1;
-    max-width: 420px;
-    height: 100%;
+    max-width: 400px;
+    height: 100vh;
+    padding-top: 100px;
+    /* Push content below navbar */
     border-top: none;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid var(--c-glass-border);
+    background: rgba(20, 20, 25, 0.45);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
   }
 }
 
 /* Typography */
 h2 {
-  margin: 0 0 24px 0;
-  color: var(--text-white);
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #fff, #aeb6bf);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Form Elements */
-.sim-select-group label {
-  display: block;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.sim-dropdown {
-  width: 100%;
-  padding: 14px 16px;
-  background: rgba(13, 17, 23, 0.6);
-  border: 1px solid var(--border-color);
-  color: #fff;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-}
-
-.sim-dropdown:hover,
-.sim-dropdown:focus {
-  border-color: var(--accent-green);
-  outline: none;
-  background-color: rgba(13, 17, 23, 0.9);
-}
-
-/* Status Box */
-.sim-status {
-  padding: 18px;
-  background: rgba(33, 38, 45, 0.6);
-  border-radius: 12px;
-  border-left: 4px solid transparent;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.sim-status:hover {
-  transform: translateY(-2px);
-}
-
-.status-label {
-  display: block;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-  color: var(--text-secondary);
-}
-
-.status-value {
+  margin: 0 0 12px 0;
+  color: var(--c-text-primary);
+  font-size: 2rem;
   font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
 }
 
-/* Sliders Container */
-.sim-slider-group {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  padding: 10px 0;
-}
-
+/* Sliders */
 .slider-item {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .slider-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
-  color: var(--text-primary);
+  font-size: 0.85rem;
+  color: var(--c-text-primary);
 }
 
 .slider-value {
-  font-weight: 600;
-  color: var(--accent-green);
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  background: rgba(35, 134, 54, 0.15);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--c-text-secondary);
+  background: rgba(255, 255, 255, 0.05);
   padding: 2px 8px;
   border-radius: 4px;
-  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Premium Range Sliders */
+/* Range Inputs */
 input[type=range] {
   -webkit-appearance: none;
   width: 100%;
   background: transparent;
-  height: 24px;
+  height: 20px;
   cursor: pointer;
-  margin: 0;
 }
 
-/* Track */
 input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
-  height: 6px;
-  background: #30363d;
-  border-radius: 6px;
-  transition: background 0.2s;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 
-input[type=range]:hover::-webkit-slider-runnable-track {
-  background: #3c444d;
-}
-
-/* Thumb */
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
   border-radius: 50%;
-  background: #ffffff;
-  margin-top: -7px;
-  /* (6px track height - 20px thumb height) / 2 */
-  box-shadow: 0 0 0 4px rgba(35, 134, 54, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: transform 0.1s, box-shadow 0.2s;
-  border: none;
+  background: #fff;
+  margin-top: -6px;
+  /* Center on 4px track */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s;
 }
 
 input[type=range]:hover::-webkit-slider-thumb {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 6px rgba(35, 134, 54, 0.4), 0 2px 6px rgba(0, 0, 0, 0.4);
-}
-
-input[type=range]:active::-webkit-slider-thumb {
-  transform: scale(1.0);
-  background: var(--accent-green);
-  box-shadow: 0 0 0 8px rgba(35, 134, 54, 0.2);
-}
-
-/* Firefox Styles */
-input[type=range]::-moz-range-track {
-  width: 100%;
-  height: 6px;
-  background: #30363d;
-  border-radius: 6px;
-}
-
-input[type=range]::-moz-range-thumb {
-  height: 20px;
-  width: 20px;
-  border: none;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(35, 134, 54, 0.3);
-  transition: transform 0.1s, box-shadow 0.2s;
-}
-
-input[type=range]:hover::-moz-range-thumb {
-  transform: scale(1.1);
-}
-
-/* Scrollbar Customization */
-.sim-controls-overlay::-webkit-scrollbar {
-  width: 8px;
-}
-
-.sim-controls-overlay::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sim-controls-overlay::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 4px;
-}
-
-.sim-controls-overlay::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+  transform: scale(1.2);
 }

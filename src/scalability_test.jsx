@@ -13,7 +13,8 @@ const greenhouseGlobals = {
 
 const sensors = Array.from({ length: 8 }, (_, i) => ({
     id: `SENSOR_00${i + 1}`,
-    soil: 40 + Math.random() * 20, // 40-60%
+    soil_moisture: 30 + Math.random() * 50, // 30-80% random
+    soil_temperature: 15 + Math.random() * 15, // 15-30°C random
     health: 80 + Math.random() * 20, // 80-100%
     growth: 0.8 + Math.random() * 0.4, // 0.8-1.2
     waterLevel: 60 + Math.random() * 30
@@ -33,11 +34,11 @@ const CONDITIONS = {
 
 function getCondition(globals, sensor) {
     // Simple logic to map sensor data to visual condition
-    // simulating what evaluatePlantHealth does but simplified for this demo
     if (globals.temperature > 35) return CONDITIONS.HEAT_STRESS;
     if (globals.temperature < 5) return CONDITIONS.FROST;
-    if (sensor.soil < 30) return CONDITIONS.DROUGHT;
-    if (sensor.soil > 90) return CONDITIONS.ROOT_ROT;
+    if (sensor.soil_moisture < 30) return CONDITIONS.DROUGHT;
+    if (sensor.soil_moisture > 90) return CONDITIONS.ROOT_ROT;
+    if (sensor.soil_temperature > 28) return CONDITIONS.HEAT_STRESS; // Hot soil
     if (sensor.health < 50) return CONDITIONS.SLOW_GROWTH;
     return CONDITIONS.OPTIMAL;
 }
@@ -128,16 +129,13 @@ function PlantInstance({ position, sensorData, globals, onSelect, isSelected }) 
 }
 
 export default function ScalabilityTest() {
-    const [selectedSensor, setSelectedSensor] = useState(null);
+    const [selectedSensor, setSelectedSensor] = useState(sensors[0]);
 
     return (
-        <div className="scalability-container">
+        <div className="scalability-container" style={{ height: 'calc(100vh - 64px)' }}>
             {/* Header */}
             <header className="scalability-header">
                 <h1>Scalability Demonstration</h1>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
-                    <button onClick={() => window.location.href = '/'} style={{ background: 'transparent', border: '1px solid #444', color: '#888', padding: '5px 15px', cursor: 'pointer' }}>Back to Home</button>
-                </div>
             </header>
 
             {/* Top Globals */}
@@ -218,8 +216,14 @@ export default function ScalabilityTest() {
                             <div className="sensor-grid">
                                 <div className="sensor-item">
                                     <label>Soil Moisture</label>
-                                    <span style={{ color: selectedSensor.soil < 50 ? '#ffaa00' : '#aaddaa' }}>
-                                        {selectedSensor.soil.toFixed(1)}%
+                                    <span style={{ color: selectedSensor.soil_moisture < 50 ? '#ffaa00' : '#aaddaa' }}>
+                                        {selectedSensor.soil_moisture.toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div className="sensor-item">
+                                    <label>Soil Temp</label>
+                                    <span style={{ color: selectedSensor.soil_temperature > 25 ? '#ffaa00' : '#aaddaa' }}>
+                                        {selectedSensor.soil_temperature.toFixed(1)}°C
                                     </span>
                                 </div>
                                 <div className="sensor-item">
@@ -231,10 +235,6 @@ export default function ScalabilityTest() {
                                 <div className="sensor-item">
                                     <label>Growth Rate</label>
                                     <span>{selectedSensor.growth.toFixed(2)}x</span>
-                                </div>
-                                <div className="sensor-item">
-                                    <label>Water Level</label>
-                                    <span>{selectedSensor.waterLevel.toFixed(0)}%</span>
                                 </div>
                             </div>
 
