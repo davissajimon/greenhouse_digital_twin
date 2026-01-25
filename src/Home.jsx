@@ -62,18 +62,24 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function CameraController({ viewMode, targetX }) {
+// Camera Controller Component
+function CameraController({ viewMode, targetX, userInteracting }) {
+  // Reset interaction flag when target changes so animation takes over
+  useEffect(() => {
+    if (userInteracting) userInteracting.current = false;
+  }, [viewMode, targetX, userInteracting]);
+
   useFrame((state) => {
+    // If user is interacting, stop auto-adjustment to prevent fighting/bouncing
+    if (userInteracting && userInteracting.current) return;
+
     // Safety check
     if (typeof targetX !== 'number') return;
 
     // Determine target based on mode
     // Overview: Close enough to see all (Z=6)
-    // Focus: Zoomed in for detail (Z=2.5)
-    // Note: Since we use OrbitControls, we shouldn't fight its position blindly,
-    // but for the transition "lerp", we apply forces.
-
-    const targetCamZ = viewMode === 'overview' ? 3.8 : 2.2;
+    // Focus: Zoomed in for detail, increased Z to 3.5 to prevent distortion
+    const targetCamZ = viewMode === 'overview' ? 3.8 : 3.5;
     const targetCamPos = viewMode === 'overview'
       ? new THREE.Vector3(0, 2.0, targetCamZ)
       : new THREE.Vector3(targetX, 0.8, targetCamZ);
@@ -83,12 +89,12 @@ function CameraController({ viewMode, targetX }) {
       ? new THREE.Vector3(0, 0, 0)
       : new THREE.Vector3(targetX, 0.5, 0);
 
-    // 1. Move Camera Position
-    state.camera.position.lerp(targetCamPos, 0.25);
+    // 1. Move Camera Position - Lower factor (0.05) for slower, smoother transition
+    state.camera.position.lerp(targetCamPos, 0.05);
 
     // 2. Move OrbitControls Target if it exists
     if (state.controls && state.controls.target) {
-      state.controls.target.lerp(targetLookAt, 0.25);
+      state.controls.target.lerp(targetLookAt, 0.05);
     } else {
       // Fallback
       state.camera.lookAt(targetLookAt);
@@ -220,6 +226,7 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
 
 export default function Home({ setNavVisible }) {
   const [activeIndex, setActiveIndex] = useState(1);
+  const userInteracting = useRef(false);
   const [viewMode, setViewMode] = useState('overview');
   const [apiState, setApiState] = useState({ isFetching: false, data: null, error: null });
   const [connectionParams, setConnectionParams] = useState({ species: '', id: '' });
@@ -294,11 +301,17 @@ export default function Home({ setNavVisible }) {
         <Environment preset="city" />
 
         {/* Interactive Controls */}
-        <OrbitControls makeDefault enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
+        <OrbitControls
+          makeDefault
+          enablePan={false}
+          minPolarAngle={Math.PI / 4}
+          maxPolarAngle={Math.PI / 2}
+          onStart={() => { userInteracting.current = true; }}
+        />
 
         {/* Dynamic Camera with Error Boundary */}
         <ErrorBoundary>
-          <CameraController viewMode={viewMode} targetX={PLANTS[activeIndex].xPos} />
+          <CameraController viewMode={viewMode} targetX={PLANTS[activeIndex].xPos} userInteracting={userInteracting} />
         </ErrorBoundary>
 
         <Suspense fallback={null}>
