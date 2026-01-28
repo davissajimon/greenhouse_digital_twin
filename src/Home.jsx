@@ -305,7 +305,7 @@ export default function Home({ setNavVisible }) {
           makeDefault
           enablePan={false}
           minPolarAngle={Math.PI / 4}
-          maxPolarAngle={Math.PI / 2}
+          maxPolarAngle={Math.PI / 2 - 0.1}
           onStart={() => { userInteracting.current = true; }}
         />
 
