@@ -3,7 +3,7 @@ import { useGLTF, Center } from "@react-three/drei";
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 export function ThreeChilli({ data }) {
-  const { scene } = useGLTF("/chilli.glb");
+  const { scene } = useGLTF("/chilli_v2.glb");
 
   useEffect(() => {
     // Safety check

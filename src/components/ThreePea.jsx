@@ -4,7 +4,7 @@ import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 export function ThreePea({ data }) {
     // Currently using healthy_tomato as placeholder per previous context
-    const { scene } = useGLTF('/healthy_tomato.glb');
+    const { scene } = useGLTF('/pea_v2.glb');
 
     useEffect(() => {
         const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };

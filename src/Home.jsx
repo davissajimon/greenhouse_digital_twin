@@ -2,14 +2,16 @@ import React, { useState, useEffect, Suspense, useRef, useMemo } from "react";
 import "./Home.css";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Html, ContactShadows, useCursor, OrbitControls } from "@react-three/drei";
-import { EffectComposer, DepthOfField } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { ThreeTomato } from "./components/ThreeTomato";
 import { ThreeChilli } from "./components/ThreeChilli";
 import { ThreePea } from "./components/ThreePea";
 import { API_BASE_URL } from "./config";
+import { applyEdgeCorrections } from "./utils/SensorCorrelations";
+import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 
 
+// --- GREENHOUSE ENVIRONMENT ---
 // --- GREENHOUSE ENVIRONMENT ---
 function Greenhouse() {
   const glassMaterial = (
@@ -19,35 +21,71 @@ function Greenhouse() {
       roughness={0.1}
       metalness={0.1}
       transparent
-      opacity={0.2}
+      opacity={0.3}
       side={2}
     />
   );
   const frameMaterial = <meshStandardMaterial color="#2c3e50" roughness={0.8} />;
 
+  // Dimensions
+  const wallHeight = 5;
+  const width = 14;
+  const halfWidth = 7;
+  const roofAngle = Math.PI / 6; // 30 degrees
+  const roofHeight = halfWidth * Math.tan(roofAngle); // ~4.04
+  const roofLength = halfWidth / Math.cos(roofAngle); // ~8.08
+  const roofCY = wallHeight + (roofHeight / 2);
+
   return (
     <group position={[0, -1, 0]}>
-      {/* Structure */}
-      <mesh position={[0, 2.5, -5]} receiveShadow castShadow><boxGeometry args={[14, 5, 0.2]} />{glassMaterial}</mesh>
-      <mesh position={[-7, 2.5, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, 5, 0.2]} />{glassMaterial}</mesh>
-      <mesh position={[7, 2.5, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, 5, 0.2]} />{glassMaterial}</mesh>
-      <mesh position={[-3.5, 6, 0]} rotation={[0, 0, Math.PI / 6]}><boxGeometry args={[8, 0.2, 10]} />{glassMaterial}</mesh>
-      <mesh position={[3.5, 6, 0]} rotation={[0, 0, -Math.PI / 6]}><boxGeometry args={[8, 0.2, 10]} />{glassMaterial}</mesh>
+      {/* --- WALLS --- */}
+      {/* Back Wall (Glass) - Full */}
+      <mesh position={[0, wallHeight / 2, -5]}><boxGeometry args={[14, wallHeight, 0.1]} />{glassMaterial}</mesh>
 
-      {/* Frames */}
-      <mesh position={[-7, 2.5, 5]}><boxGeometry args={[0.4, 5, 0.4]} />{frameMaterial}</mesh>
-      <mesh position={[7, 2.5, 5]}><boxGeometry args={[0.4, 5, 0.4]} />{frameMaterial}</mesh>
-      <mesh position={[-7, 2.5, -5]}><boxGeometry args={[0.4, 5, 0.4]} />{frameMaterial}</mesh>
-      <mesh position={[7, 2.5, -5]}><boxGeometry args={[0.4, 5, 0.4]} />{frameMaterial}</mesh>
+      {/* Left Wall */}
+      <mesh position={[-7, wallHeight / 2, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, wallHeight, 0.1]} />{glassMaterial}</mesh>
+
+      {/* Right Wall */}
+      <mesh position={[7, wallHeight / 2, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, wallHeight, 0.1]} />{glassMaterial}</mesh>
+
+      {/* --- ROOF --- */}
+      {/* Left Slope */}
+      <mesh position={[-3.5, roofCY, 0]} rotation={[0, 0, roofAngle]}>
+        <boxGeometry args={[roofLength + 0.4, 0.1, 10.4]} />
+        {glassMaterial}
+      </mesh>
+      {/* Right Slope */}
+      <mesh position={[3.5, roofCY, 0]} rotation={[0, 0, -roofAngle]}>
+        <boxGeometry args={[roofLength + 0.4, 0.1, 10.4]} />
+        {glassMaterial}
+      </mesh>
+
+      {/* --- GABLES --- */}
+      {/* Back Gable ONLY (Front Open) */}
+      <mesh position={[0, roofCY, -5]} rotation={[0,- Math.PI / 300, 0]} scale={[1, 1, 0.05]}>
+        <coneGeometry args={[7, roofHeight, 4]} />
+        {glassMaterial}
+      </mesh>
+
+
+
+      {/* --- FRAMES --- */}
+      {/* Back Corners */}
+      <mesh position={[-7, wallHeight / 2, -5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[7, wallHeight / 2, -5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
+
+      {/* Front Corners (Support for roof only, no wall) */}
+     <mesh position={[-7, wallHeight / 2, 5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[7, wallHeight / 2, 5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
     </group>
   );
 }
 
 // --- CONFIG ---
 const PLANTS = [
-  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3 },
-  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0 },
-  { id: 'pea', name: 'Pea', Component: ThreePea, xPos: 3 }
+  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3, focusZ: 3.5, focusY: 0.5 },
+  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 0.8 }, // Big plant: Further back & look higher
+  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 3, focusZ: 4.0, focusY: 0.6 }
 ];
 
 // --- 3D COMPONENTS ---
@@ -63,31 +101,33 @@ class ErrorBoundary extends React.Component {
 }
 
 // Camera Controller Component
-function CameraController({ viewMode, targetX, userInteracting }) {
+function CameraController({ viewMode, activePlantConfig, userInteracting }) {
   // Reset interaction flag when target changes so animation takes over
   useEffect(() => {
     if (userInteracting) userInteracting.current = false;
-  }, [viewMode, targetX, userInteracting]);
+  }, [viewMode, activePlantConfig, userInteracting]);
 
   useFrame((state) => {
     // If user is interacting, stop auto-adjustment to prevent fighting/bouncing
     if (userInteracting && userInteracting.current) return;
 
     // Safety check
-    if (typeof targetX !== 'number') return;
+    if (!activePlantConfig && viewMode !== 'overview') return;
 
     // Determine target based on mode
     // Overview: Close enough to see all (Z=6)
-    // Focus: Zoomed in for detail, increased Z to 3.5 to prevent distortion
-    const targetCamZ = viewMode === 'overview' ? 3.8 : 3.5;
+    // Focus: Zoomed in for detail, use plant-specific Z if available
+    const focusZ = activePlantConfig?.focusZ || 3.5;
+    const targetCamZ = viewMode === 'overview' ? 12 : focusZ;
     const targetCamPos = viewMode === 'overview'
       ? new THREE.Vector3(0, 2.0, targetCamZ)
-      : new THREE.Vector3(targetX, 0.8, targetCamZ);
+      : new THREE.Vector3(activePlantConfig?.xPos || 0, 0.8, targetCamZ);
 
     // LookAt Target (Orbit Pivot)
+    const focusY = activePlantConfig?.focusY || 0.5;
     const targetLookAt = viewMode === 'overview'
       ? new THREE.Vector3(0, 0, 0)
-      : new THREE.Vector3(targetX, 0.5, 0);
+      : new THREE.Vector3(activePlantConfig?.xPos || 0, focusY, 0);
 
     // 1. Move Camera Position - Lower factor (0.05) for slower, smoother transition
     state.camera.position.lerp(targetCamPos, 0.05);
@@ -103,8 +143,8 @@ function CameraController({ viewMode, targetX, userInteracting }) {
   return null;
 }
 
-const HologramData = ({ data, title }) => (
-  <div className="hologram-panel">
+const HologramData = ({ data, title, health }) => (
+  <div className="hologram-panel" style={{ borderColor: health?.color || '#2E8B57' }}>
     <div className="holo-header">{title}</div>
     <div className="holo-grid">
       <div className="holo-item">
@@ -124,7 +164,9 @@ const HologramData = ({ data, title }) => (
         <span className="holo-value">{data?.soil_temperature || 20}<small>°C</small></span>
       </div>
     </div>
-    <div className="holo-footer">STATUS: OPTIMAL</div>
+    <div className="holo-footer" style={{ color: health?.color || '#2E8B57' }}>
+      STATUS: {health?.label.toUpperCase() || 'OPTIMAL'}
+    </div>
   </div>
 );
 
@@ -140,7 +182,7 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      <Component data={sensorData} />
+      <Component data={{ ...sensorData, species: ItemConfig.id }} />
 
       {/* Label Chip (Always visible unless focused) */}
       {!isFocused && (
@@ -160,7 +202,11 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
       {/* Hologram View (Only when Focused) */}
       {isActive && isFocused && (
         <Html position={[0.9, 0.8, 0]} center rotateZ={0} distanceFactor={1.2} transform>
-          <HologramData data={sensorData} title={ItemConfig.name} />
+          <HologramData
+            data={sensorData}
+            title={ItemConfig.name}
+            health={evaluatePlantHealth({ ...sensorData, species: ItemConfig.id })}
+          />
         </Html>
       )}
     </group>
@@ -191,10 +237,16 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
 
           <div className="data-group">
             <h3>Diagnostic Tips</h3>
-            <div className="tips-box">
-              <p><strong>Condition:</strong> Normal</p>
-              <p style={{ marginTop: '8px', opacity: 0.8 }}>No issues detected. Maintain current irrigation and lighting schedules.</p>
-              <div className="tip-alert">! Protocol: Monitoring Active</div>
+            <div className="tips-box" style={{ borderLeftColor: apiState.health?.color || '#2e8b57' }}>
+              <p><strong>Condition:</strong> {apiState.health?.label || 'Normal'}</p>
+              <p style={{ marginTop: '8px', opacity: 0.8 }}>
+                {apiState.health?.id === 'NORMAL'
+                  ? "System optimal. No intervention required."
+                  : "Anomaly detected. Check environmental controls."}
+              </p>
+              <div className="tip-alert" style={{ color: apiState.health?.color || '#2e8b57' }}>
+                ! Protocol: {apiState.health?.id === 'NORMAL' ? 'Monitoring' : 'INTERVENTION'}
+              </div>
             </div>
           </div>
 
@@ -224,80 +276,116 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
   );
 }
 
-export default function Home({ setNavVisible }) {
+import { useFetchSensorData } from "./hooks/useFetchSensorData";
+
+export default function Home() {
   const [activeIndex, setActiveIndex] = useState(1);
   const userInteracting = useRef(false);
   const [viewMode, setViewMode] = useState('overview');
-  const [apiState, setApiState] = useState({ isFetching: false, data: null, error: null });
-  const [connectionParams, setConnectionParams] = useState({ species: '', id: '' });
 
-  const handlePlantClick = (index) => { setActiveIndex(index); setViewMode('focus'); setNavVisible(false); };
+  // apiState is now derived from the hook
+  const [connectionParams, setConnectionParams] = useState({ species: '', id: '' });
+  const { data: apiData, status: apiStatus, error: apiError } = useFetchSensorData(connectionParams.species, connectionParams.id);
+
+  const handlePlantClick = (index) => { setActiveIndex(index); setViewMode('focus'); };
   const handleNext = () => { setActiveIndex((prev) => (prev + 1) % PLANTS.length); };
   const handlePrev = () => { setActiveIndex((prev) => (prev - 1 + PLANTS.length) % PLANTS.length); };
-  const handleCloseFocus = () => { setViewMode('overview'); setNavVisible(true); };
+  const handleCloseFocus = () => { setViewMode('overview'); };
 
   useEffect(() => {
     const handleKey = (e) => {
       if (viewMode === 'overview') return;
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'Escape') { setViewMode('overview'); setNavVisible(true); }
+      if (e.key === 'Escape') { setViewMode('overview'); }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [viewMode]);
 
-  const toggleConnection = (species, id) => {
-    if (apiState.isFetching) {
-      setApiState(s => ({ ...s, isFetching: false, data: null }));
+  // Toggle navbar visibility via body class
+  useEffect(() => {
+    if (viewMode === 'focus') {
+      document.body.classList.add('home-focus-mode');
     } else {
-      if (!species || !id) { setApiState(s => ({ ...s, error: "Please enter Species and ID" })); return; }
+      document.body.classList.remove('home-focus-mode');
+    }
+    // Cleanup on unmount
+    return () => document.body.classList.remove('home-focus-mode');
+  }, [viewMode]);
+
+  const toggleConnection = (species, id) => {
+    // If currently loading or success (connected), treat as disconnect request
+    if (apiStatus === 'loading' || apiStatus === 'success') {
+      setConnectionParams({ species: '', id: '' });
+    } else {
+      // Connect request
+      if (!species || !id) return; // Sidebar handles alert mainly, but safety here
       setConnectionParams({ species, id });
-      setApiState(s => ({ ...s, isFetching: true, error: null }));
     }
   };
 
-  useEffect(() => {
-    if (!apiState.isFetching) return;
-    const poll = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/get_data/${connectionParams.species}/${connectionParams.id}`);
-        if (!res.ok) throw new Error("Stream Failed");
-        const json = await res.json();
-        setApiState(s => ({
-          ...s,
-          data: {
-            room_temperature: json.universal?.room_temperature || 0,
-            room_humidity: json.universal?.room_humidity || 0,
-            light_intensity: json.universal?.light_intensity || 0,
-            air_quality: json.universal?.air_quality || 0,
-            soil_moisture: json.plant?.soil_moisture || 0,
-            soil_temperature: json.plant?.temperature || 0
-          }
-        }));
-      } catch (e) { console.warn(e); }
-    };
-    const interval = setInterval(poll, 3000);
-    poll();
-    return () => clearInterval(interval);
-  }, [apiState.isFetching, connectionParams]);
+  // derived object for Sidebar props to match old apiState signature if needed, or strictly pass new props
+  const apiState = {
+    isFetching: apiStatus === 'loading' || apiStatus === 'success',
+    data: apiData,
+    error: apiError
+  };
 
-  // Transform api data for 3D components
-  const sensorData = apiState.data ? {
-    temperature: apiState.data.room_temperature,
-    humidity: apiState.data.room_humidity,
-    soil_moisture: apiState.data.soil_moisture,
-    soil_temperature: apiState.data.soil_temperature
-  } : null;
+  // Transform api data for 3D components AND apply physics corrections
+  const sensorData = useMemo(() => {
+    if (!apiData) return null;
+
+    // Normalize basic structure
+    const raw = {
+      temperature: apiData.temperature,
+      humidity: apiData.humidity,
+      soil_moisture: apiData.soil_moisture,
+      soil_temperature: apiData.soil_temperature
+    };
+
+    // Apply Physics Corrections (Impossible weather handling)
+    // passing null as changedKey to enforce consistency check
+    const { newState } = applyEdgeCorrections(raw, null);
+
+    return newState;
+  }, [apiData]);
+
+  // Derive health for proper UI feedback in sidebar for the *Active* plant
+  const activePlantHealth = useMemo(() => {
+    if (!sensorData) return null;
+    return evaluatePlantHealth({ ...sensorData, species: PLANTS[activeIndex].id });
+  }, [sensorData, activeIndex]);
+
+  // Patch apiState to include health for Sidebar consumption
+  const extendedApiState = { ...apiState, health: activePlantHealth };
 
   return (
     <div className="app-layout" style={{ height: 'calc(100vh - 64px)' }}>
-      <Canvas className="webgl-canvas" shadows dpr={1}>
+      <Canvas
+        className="webgl-canvas"
+        shadows="soft"
+        dpr={[1, 1.5]} // Clamp pixel ratio for performance
+        camera={{ position: [0, 4, 12], fov: 45, near: 0.1, far: 50 }} // Tight frustum with Initial Backward Position
+        gl={{ powerPreference: "high-performance", antialias: false }} // Optimize context
+      >
         <color attach="background" args={['#101827']} />
 
-        <ambientLight intensity={1.5} />
-        <pointLight position={[0, 5, 5]} intensity={5} distance={20} decay={2} />
-        <directionalLight position={[5, 10, 5]} intensity={3} castShadow />
+        <ambientLight intensity={1.0} />
+        {/* Fill light, no shadows */}
+        <pointLight position={[0, 5, 5]} intensity={3} distance={15} decay={2} castShadow={false} />
+        {/* Main Key Light */}
+        <directionalLight
+          position={[5, 8, 5]}
+          intensity={2}
+          castShadow
+          shadow-mapSize={[1024, 1024]} // Optimize shadow map
+          shadow-camera-far={20}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
+        />
         <Environment preset="city" />
 
         {/* Interactive Controls */}
@@ -306,12 +394,20 @@ export default function Home({ setNavVisible }) {
           enablePan={false}
           minPolarAngle={Math.PI / 4}
           maxPolarAngle={Math.PI / 2 - 0.1}
+          minDistance={2}            // Allow zooming in close
+          maxDistance={14}           // Restrict zooming out too far (floor edges)
+          minAzimuthAngle={-Math.PI / 4} // Restrict left rotation (45 deg)
+          maxAzimuthAngle={Math.PI / 4}  // Restrict right rotation (45 deg)
           onStart={() => { userInteracting.current = true; }}
         />
 
         {/* Dynamic Camera with Error Boundary */}
         <ErrorBoundary>
-          <CameraController viewMode={viewMode} targetX={PLANTS[activeIndex].xPos} userInteracting={userInteracting} />
+          <CameraController
+            viewMode={viewMode}
+            activePlantConfig={PLANTS[activeIndex]}
+            userInteracting={userInteracting}
+          />
         </ErrorBoundary>
 
         <Suspense fallback={null}>
@@ -327,14 +423,14 @@ export default function Home({ setNavVisible }) {
                 sensorData={sensorData}
               />
             ))}
-            {/* Floor */}
+            {/* Floor - Reduced Size */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-              <planeGeometry args={[50, 50]} />
-              <meshStandardMaterial color="#020202" roughness={0.6} />
+              <planeGeometry args={[35, 35]} /> {/* Increased from 20 to 35 */}
+              <meshStandardMaterial color="#0b101b" roughness={0.7} metalness={0.2} />
             </mesh>
-            <gridHelper args={[50, 50, '#333', '#111']} />
+            <gridHelper args={[35, 35, '#333', '#111']} />
             <Greenhouse />
-            <ContactShadows resolution={512} scale={20} blur={2.5} opacity={0.5} far={10} />
+            <ContactShadows resolution={256} scale={20} blur={2.5} opacity={0.5} far={10} />
           </ErrorBoundary>
         </Suspense>
       </Canvas>
@@ -369,7 +465,7 @@ export default function Home({ setNavVisible }) {
         visible={viewMode === 'focus'}
         plant={PLANTS[activeIndex]}
         onClose={handleCloseFocus}
-        apiState={apiState}
+        apiState={extendedApiState}
         onConnect={toggleConnection}
       />
     </div>

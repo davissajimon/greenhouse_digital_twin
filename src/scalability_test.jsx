@@ -45,7 +45,7 @@ function getCondition(globals, sensor) {
 
 function PlantInstance({ position, sensorData, globals, onSelect, isSelected }) {
     // 1. Load the model (cached)
-    const { scene } = useGLTF('/Untitled.glb');
+    const { scene } = useGLTF('/tomato_v2.glb');
 
     // 2. Clone the scene for this instance!
     // Standard clone(true) is recursive and works for most GLTFs

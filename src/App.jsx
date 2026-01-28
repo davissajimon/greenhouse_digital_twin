@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./App.css";
 import Home from "./Home";
-import Loginpage from "./Loginpage";
 import Simulator from "./Simulator";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MainNavbar from "./Navbar";
@@ -11,18 +10,16 @@ import { DarkModeProvider } from "./DarkModeContext";
 const ScalabilityTest = React.lazy(() => import("./scalability_test"));
 
 function App() {
-  const [navVisible, setNavVisible] = useState(true);
-
   return (
     <DarkModeProvider>
       <div className="cinematic-noise"></div>
       <Router>
-        <MainNavbar visible={navVisible} />
+        <MainNavbar />
 
         <Routes>
           <Route
             path="/"
-            element={<Home setNavVisible={setNavVisible} />}
+            element={<Home />}
           />
 
           <Route

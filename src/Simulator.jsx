@@ -66,7 +66,7 @@ export default function Simulator() {
   };
 
   // Evaluate Health Real-time
-  const healthStatus = useMemo(() => evaluatePlantHealth(controls), [controls]);
+  const healthStatus = useMemo(() => evaluatePlantHealth({ ...controls, species: plant }), [controls, plant]);
 
   // Handle window resize for responsive scaling
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function Simulator() {
               <Suspense fallback={<Loader />}>
                 {plant === "tomato" && <ThreeTomato data={controls} />}
                 {plant === "chilli" && <ThreeChilli data={controls} />}
-                {plant === "pea" && <ThreePea data={controls} />}
+                {plant === "okra" && <ThreePea data={controls} />}
 
                 <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
                   <circleGeometry args={[10, 64]} />
@@ -162,7 +162,7 @@ export default function Simulator() {
             >
               <option value="tomato">Tomato Plant</option>
               <option value="chilli">Chilli Plant</option>
-              <option value="pea">Pea Plant</option>
+              <option value="okra">Lady's Finger (Okra)</option>
             </select>
           </div>
 
