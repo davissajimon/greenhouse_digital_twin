@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, useRef, useMemo } from "react";
 import "./Home.css";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Html, ContactShadows, useCursor, OrbitControls } from "@react-three/drei";
+import { Environment, Html, ContactShadows, useCursor, OrbitControls, Billboard, useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { ThreeTomato } from "./components/ThreeTomato";
 import { ThreeChilli } from "./components/ThreeChilli";
@@ -13,7 +13,7 @@ import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 
 // --- GREENHOUSE ENVIRONMENT ---
 // --- GREENHOUSE ENVIRONMENT ---
-function Greenhouse() {
+function Greenhouse({ viewMode }) {
   const glassMaterial = (
     <meshPhysicalMaterial
       color="#bde0ff"
@@ -29,63 +29,92 @@ function Greenhouse() {
 
   // Dimensions
   const wallHeight = 5;
-  const width = 14;
-  const halfWidth = 7;
+  const width = 15.00; // Extended left by 0.23 (14.77 -> 15.00)
+  const halfWidth = 7.50;
+  const centerX = 0.125; // Shifted left again
+
   const roofAngle = Math.PI / 6; // 30 degrees
-  const roofHeight = halfWidth * Math.tan(roofAngle); // ~4.04
-  const roofLength = halfWidth / Math.cos(roofAngle); // ~8.08
+  const roofHeight = halfWidth * Math.tan(roofAngle);
+  const roofLength = halfWidth / Math.cos(roofAngle);
   const roofCY = wallHeight + (roofHeight / 2);
 
+  const extension = 2.0; // Unified safe extension for all walls
+  const visualHeight = wallHeight + extension;
+  const visualY = (wallHeight - extension) / 2;
+
+  // Delay front wall appearance to prevent view blocking during zoom-in
+  const [showFrontWall, setShowFrontWall] = useState(false);
+  useEffect(() => {
+    let timer;
+    if (viewMode === 'focus') {
+      timer = setTimeout(() => setShowFrontWall(true), 1000); // 1s delay for camera travel
+    } else {
+      setShowFrontWall(false);
+    }
+    return () => clearTimeout(timer);
+  }, [viewMode]);
+
   return (
-    <group position={[0, -1, 0]}>
+    <group position={[-0.1, -1.2, -0.2]} scale={0.95}>
       {/* --- WALLS --- */}
       {/* Back Wall (Glass) - Full */}
-      <mesh position={[0, wallHeight / 2, -5]}><boxGeometry args={[14, wallHeight, 0.1]} />{glassMaterial}</mesh>
+      <mesh position={[centerX, visualY, -5]}><boxGeometry args={[width, visualHeight, 0.1]} />{glassMaterial}</mesh>
 
       {/* Left Wall */}
-      <mesh position={[-7, wallHeight / 2, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, wallHeight, 0.1]} />{glassMaterial}</mesh>
+      <mesh position={[centerX - halfWidth, visualY, 1]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[12, visualHeight, 0.1]} />{glassMaterial}</mesh>
 
       {/* Right Wall */}
-      <mesh position={[7, wallHeight / 2, 0]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[10, wallHeight, 0.1]} />{glassMaterial}</mesh>
+      <mesh position={[centerX + halfWidth, visualY, 1]} rotation={[0, Math.PI / 2, 0]}><boxGeometry args={[12, visualHeight, 0.1]} />{glassMaterial}</mesh>
 
       {/* --- ROOF --- */}
       {/* Left Slope */}
-      <mesh position={[-3.5, roofCY, 0]} rotation={[0, 0, roofAngle]}>
-        <boxGeometry args={[roofLength + 0.4, 0.1, 10.4]} />
+      <mesh position={[centerX - (halfWidth / 2), roofCY, 1]} rotation={[0, 0, roofAngle]}>
+        <boxGeometry args={[roofLength + 0.4, 0.1, 12.4]} />
         {glassMaterial}
       </mesh>
       {/* Right Slope */}
-      <mesh position={[3.5, roofCY, 0]} rotation={[0, 0, -roofAngle]}>
-        <boxGeometry args={[roofLength + 0.4, 0.1, 10.4]} />
+      <mesh position={[centerX + (halfWidth / 2), roofCY, 1]} rotation={[0, 0, -roofAngle]}>
+        <boxGeometry args={[roofLength + 0.4, 0.1, 12.4]} />
         {glassMaterial}
       </mesh>
 
       {/* --- GABLES --- */}
       {/* Back Gable ONLY (Front Open) */}
-      <mesh position={[0, roofCY, -5]} rotation={[0,- Math.PI / 300, 0]} scale={[1, 1, 0.05]}>
-        <coneGeometry args={[7, roofHeight, 4]} />
+      <mesh position={[centerX, roofCY, -5]} rotation={[0, - Math.PI / 300, 0]} scale={[1, 1, 0.05]}>
+        <coneGeometry args={[halfWidth, roofHeight, 4]} />
         {glassMaterial}
       </mesh>
+
+      {/* Front Wall & Gable (Only in Focus Mode with Delay) */}
+      {showFrontWall && (
+        <>
+          <mesh position={[centerX, visualY, 7]}><boxGeometry args={[width, visualHeight, 0.1]} />{glassMaterial}</mesh>
+          <mesh position={[centerX, roofCY, 7]} rotation={[0, -Math.PI / 300, 0]} scale={[1, 1, 0.05]}>
+            <coneGeometry args={[halfWidth, roofHeight, 4]} />
+            {glassMaterial}
+          </mesh>
+        </>
+      )}
 
 
 
       {/* --- FRAMES --- */}
       {/* Back Corners */}
-      <mesh position={[-7, wallHeight / 2, -5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
-      <mesh position={[7, wallHeight / 2, -5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[centerX - halfWidth, visualY, -5]}><boxGeometry args={[0.3, visualHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[centerX + halfWidth, visualY, -5]}><boxGeometry args={[0.3, visualHeight, 0.3]} />{frameMaterial}</mesh>
 
       {/* Front Corners (Support for roof only, no wall) */}
-     <mesh position={[-7, wallHeight / 2, 5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
-      <mesh position={[7, wallHeight / 2, 5]}><boxGeometry args={[0.3, wallHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[centerX - halfWidth, visualY, 7]}><boxGeometry args={[0.3, visualHeight, 0.3]} />{frameMaterial}</mesh>
+      <mesh position={[centerX + halfWidth, visualY, 7]}><boxGeometry args={[0.3, visualHeight, 0.3]} />{frameMaterial}</mesh>
     </group>
   );
 }
 
 // --- CONFIG ---
 const PLANTS = [
-  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3, focusZ: 3.5, focusY: 0.5 },
-  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 0.8 }, // Big plant: Further back & look higher
-  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 3, focusZ: 4.0, focusY: 0.6 }
+  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3.1, focusZ: 3.5, focusY: 0.5 },
+  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: -0.1, focusZ: 5.5, focusY: 0.8 }, // Big plant: Further back & look higher
+  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 2.9, focusZ: 4.0, focusY: 0.6 }
 ];
 
 // --- 3D COMPONENTS ---
@@ -129,12 +158,12 @@ function CameraController({ viewMode, activePlantConfig, userInteracting }) {
       ? new THREE.Vector3(0, 0, 0)
       : new THREE.Vector3(activePlantConfig?.xPos || 0, focusY, 0);
 
-    // 1. Move Camera Position - Lower factor (0.05) for slower, smoother transition
-    state.camera.position.lerp(targetCamPos, 0.05);
+    // 1. Move Camera Position - Higher factor (0.15) for faster, snappy transition
+    state.camera.position.lerp(targetCamPos, 0.15);
 
     // 2. Move OrbitControls Target if it exists
     if (state.controls && state.controls.target) {
-      state.controls.target.lerp(targetLookAt, 0.05);
+      state.controls.target.lerp(targetLookAt, 0.15);
     } else {
       // Fallback
       state.camera.lookAt(targetLookAt);
@@ -177,7 +206,7 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
 
   return (
     <group
-      position={[ItemConfig.xPos, 0, 0]}
+      position={[ItemConfig.xPos, -0.32, 0.05]}
       onClick={(e) => { e.stopPropagation(); onClick(index); }}
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
@@ -201,13 +230,15 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
 
       {/* Hologram View (Only when Focused) */}
       {isActive && isFocused && (
-        <Html position={[0.9, 0.8, 0]} center rotateZ={0} distanceFactor={1.2} transform>
-          <HologramData
-            data={sensorData}
-            title={ItemConfig.name}
-            health={evaluatePlantHealth({ ...sensorData, species: ItemConfig.id })}
-          />
-        </Html>
+        <Billboard position={[0.9, 0.8, 0]} follow={true}>
+          <Html position={[0, 0, 0]} center rotateZ={0} distanceFactor={1.2} transform>
+            <HologramData
+              data={sensorData}
+              title={ItemConfig.name}
+              health={evaluatePlantHealth({ ...sensorData, species: ItemConfig.id })}
+            />
+          </Html>
+        </Billboard>
       )}
     </group>
   );
@@ -277,6 +308,74 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
 }
 
 import { useFetchSensorData } from "./hooks/useFetchSensorData";
+
+
+
+
+
+
+function Floor() {
+  const { scene } = useGLTF("/grassbase.glb");
+  const concreteMap = useTexture("detailed_ground_texture.png");
+
+  // Clone grass model
+  const clone = useMemo(() => scene.clone(), [scene]);
+
+  // Configure concrete texture
+  const concreteTexture = useMemo(() => {
+    const t = concreteMap.clone();
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(4, 4);
+    t.anisotropy = 16;
+    t.needsUpdate = true;
+    return t;
+  }, [concreteMap]);
+
+  return (
+    <group>
+      {/* Outside Grass Terrain */}
+      <primitive
+        object={clone}
+        position={[0, -0.15, 0]}
+        scale={[2.2, 2.2, 2.2]}
+      />
+
+      {/* Inside Concrete Floor */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.025, -0.28, 0.4875]} receiveShadow>
+        <planeGeometry args={[14.00, 10.675]} />
+        <meshStandardMaterial
+          map={concreteTexture}
+          roughness={0.9}
+          metalness={0.1}
+        />
+      </mesh>
+
+      {/* Front Vertical Wall (Foundation Edge) */}
+      <mesh rotation={[0, 0, 0]} position={[0.025, -1.03, 5.825]} receiveShadow>
+        <planeGeometry args={[14.00, 1.5]} />
+        <meshStandardMaterial map={concreteTexture} roughness={0.9} metalness={0.1} />
+      </mesh>
+
+      {/* Back Vertical Wall */}
+      <mesh rotation={[0, Math.PI, 0]} position={[0.025, -1.03, -4.85]} receiveShadow>
+        <planeGeometry args={[14.00, 1.5]} />
+        <meshStandardMaterial map={concreteTexture} roughness={0.9} metalness={0.1} />
+      </mesh>
+
+      {/* Left Vertical Wall */}
+      <mesh rotation={[0, -Math.PI / 2, 0]} position={[-6.975, -1.03, 0.4875]} receiveShadow>
+        <planeGeometry args={[10.675, 1.5]} />
+        <meshStandardMaterial map={concreteTexture} roughness={0.9} metalness={0.1} />
+      </mesh>
+
+      {/* Right Vertical Wall */}
+      <mesh rotation={[0, Math.PI / 2, 0]} position={[7.025, -1.03, 0.4875]} receiveShadow>
+        <planeGeometry args={[10.675, 1.5]} />
+        <meshStandardMaterial map={concreteTexture} roughness={0.9} metalness={0.1} />
+      </mesh>
+    </group>
+  );
+}
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(1);
@@ -392,12 +491,14 @@ export default function Home() {
         <OrbitControls
           makeDefault
           enablePan={false}
+          enableDamping={true}
+          dampingFactor={0.1}
           minPolarAngle={Math.PI / 4}
           maxPolarAngle={Math.PI / 2 - 0.1}
           minDistance={2}            // Allow zooming in close
           maxDistance={14}           // Restrict zooming out too far (floor edges)
-          minAzimuthAngle={-Math.PI / 4} // Restrict left rotation (45 deg)
-          maxAzimuthAngle={Math.PI / 4}  // Restrict right rotation (45 deg)
+          minAzimuthAngle={viewMode === 'focus' ? -Infinity : -Math.PI / 4}
+          maxAzimuthAngle={viewMode === 'focus' ? Infinity : Math.PI / 4}
           onStart={() => { userInteracting.current = true; }}
         />
 
@@ -423,13 +524,9 @@ export default function Home() {
                 sensorData={sensorData}
               />
             ))}
-            {/* Floor - Reduced Size */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-              <planeGeometry args={[35, 35]} /> {/* Increased from 20 to 35 */}
-              <meshStandardMaterial color="#0b101b" roughness={0.7} metalness={0.2} />
-            </mesh>
-            <gridHelper args={[35, 35, '#333', '#111']} />
-            <Greenhouse />
+            {/* Soil Floor */}
+            <Floor />
+            <Greenhouse viewMode={viewMode} />
             <ContactShadows resolution={256} scale={20} blur={2.5} opacity={0.5} far={10} />
           </ErrorBoundary>
         </Suspense>

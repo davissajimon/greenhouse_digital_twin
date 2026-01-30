@@ -68,6 +68,25 @@ export default function Simulator() {
   // Evaluate Health Real-time
   const healthStatus = useMemo(() => evaluatePlantHealth({ ...controls, species: plant }), [controls, plant]);
 
+  // Dynamic Lighting Calculation
+  const lighting = useMemo(() => {
+    const lux = controls.light;
+    const isNight = lux < 200;
+
+    // Intensity mapping
+    const ambientInt = 0.1 + (lux / 1500) * 0.8;
+    const dirInt = (lux / 1000) * 2.0;
+
+    // Color & Position
+    const sunColor = isNight ? '#88aaff' : '#fff5cc'; // Moon Blue vs Sun Warm
+    const sunPos = isNight ? [-10, 10, -5] : [10, 15, 10]; // Opposite sides
+
+    // Background Interpolation (Simple Step for now)
+    const bgHex = isNight ? '#04060f' : '#181a1b';
+
+    return { ambientInt, dirInt, sunColor, sunPos, bgHex, isNight };
+  }, [controls.light]);
+
   // Handle window resize for responsive scaling
   useEffect(() => {
     const handleResize = () => {
@@ -126,9 +145,24 @@ export default function Simulator() {
               style={{ width: '100%', height: '100%' }}
               onError={() => setHasError(true)}
             >
-              <color attach="background" args={['#181a1b']} />
-              <ambientLight intensity={0.6} />
-              <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+              <color attach="background" args={[lighting.bgHex]} />
+              <ambientLight intensity={lighting.ambientInt} />
+              <directionalLight
+                position={lighting.sunPos}
+                intensity={lighting.dirInt}
+                color={lighting.sunColor}
+                castShadow
+                shadow-bias={-0.0005}
+              />
+
+              {/* Sun/Moon Visual */}
+              <mesh position={lighting.sunPos}>
+                <sphereGeometry args={[isFinite(lighting.dirInt) && lighting.dirInt > 0 ? 0.8 : 0, 32, 32]} />
+                <meshBasicMaterial color={lighting.sunColor} toneMapped={false} />
+                {/* Glow effect for moon/sun */}
+                <pointLight intensity={lighting.dirInt * 0.5} distance={10} color={lighting.sunColor} />
+              </mesh>
+
               <Environment preset="city" />
 
               <Suspense fallback={<Loader />}>
