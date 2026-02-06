@@ -15,13 +15,12 @@ import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 // --- GREENHOUSE ENVIRONMENT ---
 function Greenhouse({ viewMode }) {
   const glassMaterial = (
-    <meshPhysicalMaterial
+    <meshStandardMaterial
       color="#bde0ff"
-      transmission={0.4}
       roughness={0.1}
-      metalness={0.1}
+      metalness={0.8}
       transparent
-      opacity={0.3}
+      opacity={0.25}
       side={2}
     />
   );
@@ -47,7 +46,7 @@ function Greenhouse({ viewMode }) {
   useEffect(() => {
     let timer;
     if (viewMode === 'focus') {
-      timer = setTimeout(() => setShowFrontWall(true), 1000); // 1s delay for camera travel
+      timer = setTimeout(() => setShowFrontWall(true), 1200); // 1.2s delay for camera travel
     } else {
       setShowFrontWall(false);
     }
@@ -112,9 +111,9 @@ function Greenhouse({ viewMode }) {
 
 // --- CONFIG ---
 const PLANTS = [
-  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3.1, focusZ: 3.5, focusY: 0.5 },
-  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: -0.1, focusZ: 5.5, focusY: 0.8 }, // Big plant: Further back & look higher
-  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 2.9, focusZ: 4.0, focusY: 0.6 }
+  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -4.5, focusZ: 4.5, focusY: 1.0 },
+  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 1.2 }, // Central hero plant
+  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 4.5, focusZ: 4.5, focusY: 1.0 }
 ];
 
 // --- 3D COMPONENTS ---
@@ -199,10 +198,33 @@ const HologramData = ({ data, title, health }) => (
   </div>
 );
 
-function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData }) {
+function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorId, onDataUpdate }) {
   const [hovered, setHovered] = useState(false);
   useCursor(hovered);
   const Component = ItemConfig.Component;
+
+  // Independent Data Fetching for this specific plant
+  const { data: apiData, status, error } = useFetchSensorData(ItemConfig.id, sensorId);
+
+  // Process data (Physics fixes etc)
+  const sensorData = useMemo(() => {
+    if (!apiData) return null;
+    const raw = {
+      temperature: apiData.temperature,
+      humidity: apiData.humidity,
+      soil_moisture: apiData.soil_moisture,
+      soil_temperature: apiData.soil_temperature
+    };
+    const { newState } = applyEdgeCorrections(raw, null);
+    return newState;
+  }, [apiData]);
+
+  // Bubble up data to Home if this is the active plant
+  useEffect(() => {
+    if (isActive && onDataUpdate) {
+      onDataUpdate({ data: sensorData, status, error });
+    }
+  }, [isActive, sensorData, status, error, onDataUpdate]);
 
   return (
     <group
@@ -215,7 +237,7 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
 
       {/* Label Chip (Always visible unless focused) */}
       {!isFocused && (
-        <Html position={[0, 2.5, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+        <Html position={[0, 3.6, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
           <div
             className="plant-label-chip"
             style={{
@@ -248,14 +270,16 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorData
 
 import { useNavigate } from "react-router-dom";
 
-function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
+function Sidebar({ visible, plant, onClose, apiState, currentSensorId, onUpdateSensorId }) {
   const [species, setSpecies] = useState(plant?.name || "");
-  const [sensorId, setSensorId] = useState("");
+  const [sensorIdInput, setSensorIdInput] = useState(currentSensorId || "");
   const navigate = useNavigate();
 
   useEffect(() => {
     if (plant) setSpecies(plant.name);
-  }, [plant]);
+    // When plant changes or currentSensorId updates from outside, update local input
+    setSensorIdInput(currentSensorId || "");
+  }, [plant, currentSensorId]);
 
   return (
     <div className={`sidebar-panel glass-panel ${visible ? 'visible' : ''}`}>
@@ -283,10 +307,18 @@ function Sidebar({ visible, plant, onClose, apiState, onConnect }) {
 
           <div className="data-group">
             <h3>Connection Settings</h3>
-            <input className="input-field" placeholder="Species Name" value={species} onChange={(e) => setSpecies(e.target.value)} />
-            <input className="input-field" placeholder="Sensor ID" value={sensorId} onChange={(e) => setSensorId(e.target.value)} />
-            <button className={`connect-btn ${apiState.isFetching ? 'active' : ''}`} onClick={() => onConnect(species, sensorId)}>
-              {apiState.isFetching ? 'Disconnect Stream' : 'Connect Sensor Stream'}
+            <input className="input-field" placeholder="Species Name" value={species} readOnly style={{ opacity: 0.7 }} />
+            <input
+              className="input-field"
+              placeholder="Sensor ID"
+              value={sensorIdInput}
+              onChange={(e) => setSensorIdInput(e.target.value)}
+            />
+            <button
+              className={`connect-btn ${apiState.isFetching ? 'active' : ''}`}
+              onClick={() => onUpdateSensorId(plant.id, sensorIdInput)}
+            >
+              {apiState.isFetching ? 'Refresh / Update Stream' : 'Connect Sensor Stream'}
             </button>
             {apiState.error && <p style={{ color: 'red', fontSize: '0.8rem', marginTop: '10px' }}>{apiState.error}</p>}
           </div>
@@ -382,14 +414,25 @@ export default function Home() {
   const userInteracting = useRef(false);
   const [viewMode, setViewMode] = useState('overview');
 
-  // apiState is now derived from the hook
-  const [connectionParams, setConnectionParams] = useState({ species: '', id: '' });
-  const { data: apiData, status: apiStatus, error: apiError } = useFetchSensorData(connectionParams.species, connectionParams.id);
+  // Independent sensor mapping: plant.id -> sensorId
+  const [sensorMap, setSensorMap] = useState({
+    tomato: "1",
+    chilli: "2",
+    okra: "3"
+  });
+
+  // Data from the currently ACTIVE plant (for Sidebar display)
+  const [activePlantData, setActivePlantData] = useState({ data: null, status: 'idle', error: null });
 
   const handlePlantClick = (index) => { setActiveIndex(index); setViewMode('focus'); };
   const handleNext = () => { setActiveIndex((prev) => (prev + 1) % PLANTS.length); };
   const handlePrev = () => { setActiveIndex((prev) => (prev - 1 + PLANTS.length) % PLANTS.length); };
   const handleCloseFocus = () => { setViewMode('overview'); };
+
+  // Data Update Handler from PlantItems
+  const handleDataUpdate = (fetchedInfo) => {
+    setActivePlantData(fetchedInfo);
+  };
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -402,62 +445,34 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [viewMode]);
 
-  // Toggle navbar visibility via body class
   useEffect(() => {
     if (viewMode === 'focus') {
       document.body.classList.add('home-focus-mode');
     } else {
       document.body.classList.remove('home-focus-mode');
     }
-    // Cleanup on unmount
     return () => document.body.classList.remove('home-focus-mode');
   }, [viewMode]);
 
-  const toggleConnection = (species, id) => {
-    // If currently loading or success (connected), treat as disconnect request
-    if (apiStatus === 'loading' || apiStatus === 'success') {
-      setConnectionParams({ species: '', id: '' });
-    } else {
-      // Connect request
-      if (!species || !id) return; // Sidebar handles alert mainly, but safety here
-      setConnectionParams({ species, id });
-    }
+  const updateSensorId = (plantId, newId) => {
+    setSensorMap(prev => ({
+      ...prev,
+      [plantId]: newId
+    }));
   };
 
-  // derived object for Sidebar props to match old apiState signature if needed, or strictly pass new props
-  const apiState = {
-    isFetching: apiStatus === 'loading' || apiStatus === 'success',
-    data: apiData,
-    error: apiError
-  };
-
-  // Transform api data for 3D components AND apply physics corrections
-  const sensorData = useMemo(() => {
-    if (!apiData) return null;
-
-    // Normalize basic structure
-    const raw = {
-      temperature: apiData.temperature,
-      humidity: apiData.humidity,
-      soil_moisture: apiData.soil_moisture,
-      soil_temperature: apiData.soil_temperature
-    };
-
-    // Apply Physics Corrections (Impossible weather handling)
-    // passing null as changedKey to enforce consistency check
-    const { newState } = applyEdgeCorrections(raw, null);
-
-    return newState;
-  }, [apiData]);
-
-  // Derive health for proper UI feedback in sidebar for the *Active* plant
+  // Derive active health state for Sidebar
   const activePlantHealth = useMemo(() => {
-    if (!sensorData) return null;
-    return evaluatePlantHealth({ ...sensorData, species: PLANTS[activeIndex].id });
-  }, [sensorData, activeIndex]);
+    if (!activePlantData.data) return null;
+    return evaluatePlantHealth({ ...activePlantData.data, species: PLANTS[activeIndex].id });
+  }, [activePlantData.data, activeIndex]);
 
-  // Patch apiState to include health for Sidebar consumption
-  const extendedApiState = { ...apiState, health: activePlantHealth };
+  const sidebarApiState = {
+    isFetching: activePlantData.status === 'loading' || activePlantData.status === 'success',
+    data: activePlantData.data,
+    error: activePlantData.error,
+    health: activePlantHealth
+  };
 
   return (
     <div className="app-layout" style={{ height: 'calc(100vh - 64px)' }}>
@@ -521,7 +536,8 @@ export default function Home() {
                 isActive={i === activeIndex}
                 isFocused={viewMode === 'focus'}
                 onClick={handlePlantClick}
-                sensorData={sensorData}
+                sensorId={sensorMap[plant.id]}
+                onDataUpdate={handleDataUpdate}
               />
             ))}
             {/* Soil Floor */}
@@ -562,8 +578,9 @@ export default function Home() {
         visible={viewMode === 'focus'}
         plant={PLANTS[activeIndex]}
         onClose={handleCloseFocus}
-        apiState={extendedApiState}
-        onConnect={toggleConnection}
+        apiState={sidebarApiState}
+        currentSensorId={sensorMap[PLANTS[activeIndex].id]}
+        onUpdateSensorId={updateSensorId}
       />
     </div>
   );

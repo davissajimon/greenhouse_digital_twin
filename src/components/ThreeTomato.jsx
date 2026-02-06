@@ -3,7 +3,7 @@ import { useGLTF, Center } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 export function ThreeTomato({ data }) {
-    const { scene } = useGLTF('/tomato_v2.glb');
+    const { scene } = useGLTF('/Untitled.glb');
 
     useEffect(() => {
         // Evaluate condition based on full sensor data
@@ -124,7 +124,7 @@ export function ThreeTomato({ data }) {
     return (
         <group dispose={null}>
             <Center top>
-                <group scale={0.5} position={[0, 0, -5]}>
+                <group scale={0.75} position={[0, 2, -5]}>
                     <primitive object={scene} />
                 </group>
             </Center>

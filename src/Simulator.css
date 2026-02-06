@@ -1,149 +1,161 @@
 /* Simulator.css - Cinematic Dashboard */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-.sim-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  flex-direction: column;
-  background: var(--c-bg-dark);
+:root {
+  --bg-dark: #0d1117;
+  --text-white: #ffffff;
+  --accent-green: #238636;
+  --glass-bg: rgba(22, 27, 34, 0.7);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --font-hero: 'Inter', sans-serif;
+  --font-mono: 'Courier New', monospace;
+  --c-accent: #38bdf8;
+  /* Sky blue for tech feel */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
   font-family: var(--font-hero);
   overflow: hidden;
-  position: relative;
-  /* Cinematic Entry */
-  opacity: 0;
-  transform: scale(1.02);
-  animation: cinematicFadeIn 1s var(--ease-cinematic) forwards;
 }
 
-.sim-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.sim-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-dark);
+  color: var(--text-white);
   overflow: hidden;
-  padding-top: 80px;
-  /* Spacer for fixed floating navbar */
 }
 
-/* Visualization Area */
+/* Visualization Area - Full Screen */
 .sim-viewport-wrapper {
-  flex: 1;
-  position: relative;
-  min-height: 50vh;
-  background: transparent;
-  /* Allow canvas background to show */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-/* Controls Panel - Glassmorphism */
+/* Controls Panel - Floating Glass Sidebar */
 .sim-controls-overlay {
-  width: 100%;
-  background: rgba(20, 20, 25, 0.45);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 32px;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 360px;
+  max-width: 90vw;
+  max-height: calc(100vh - 40px);
+  background: rgba(13, 17, 23, 0.75);
+  /* Deep dark glass */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
   overflow-y: auto;
-  box-sizing: border-box;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
-  z-index: 10;
+  gap: 20px;
+  transition: transform 0.3s ease;
 }
 
-/* ... (Media Query remains separate block below) ... */
+/* Custom Scrollbar for panel */
+.sim-controls-overlay::-webkit-scrollbar {
+  width: 6px;
+}
 
-/* ... (Typography) ... */
+.sim-controls-overlay::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sim-controls-overlay::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Title */
+.sim-controls-overlay h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
 /* Form Elements */
 .sim-select-group label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--c-text-secondary);
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 8px;
   font-weight: 600;
-  font-family: var(--font-mono);
 }
 
 .sim-dropdown {
   width: 100%;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #fff;
   border-radius: 8px;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-family: inherit;
   cursor: pointer;
-  appearance: none;
-  font-family: var(--font-hero);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
 .sim-dropdown:hover,
 .sim-dropdown:focus {
   border-color: var(--c-accent);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.4);
   outline: none;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 /* Status Box */
 .sim-status {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 12px;
-  border-left: 3px solid transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 4px solid #4ade80;
+  /* Default green */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Desktop Split */
-@media (min-width: 1024px) {
-  .sim-content {
-    flex-direction: row;
-    padding-top: 0;
-    /* Full height split */
-  }
-
-  .sim-viewport-wrapper {
-    flex: 2;
-    height: 100%;
-  }
-
-  .sim-controls-overlay {
-    flex: 1;
-    max-width: 400px;
-    height: 100vh;
-    padding-top: 100px;
-    /* Push content below navbar */
-    border-top: none;
-    border-left: 1px solid var(--c-glass-border);
-    background: rgba(20, 20, 25, 0.45);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-  }
+.status-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-/* Typography */
-h2 {
-  margin: 0 0 12px 0;
-  color: var(--c-text-primary);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+.status-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
 }
 
 /* Sliders */
+.sim-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .slider-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .slider-header {
@@ -151,17 +163,17 @@ h2 {
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
-  color: var(--c-text-primary);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .slider-value {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--c-text-secondary);
-  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.75rem;
+  color: var(--c-accent);
+  background: rgba(56, 189, 248, 0.1);
   padding: 2px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 /* Range Inputs */
@@ -169,29 +181,86 @@ input[type=range] {
   -webkit-appearance: none;
   width: 100%;
   background: transparent;
-  height: 20px;
+  height: 6px;
   cursor: pointer;
+  border-radius: 3px;
 }
 
 input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 16px;
-  width: 16px;
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
   background: #fff;
   margin-top: -6px;
-  /* Center on 4px track */
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  transition: transform 0.2s;
+  /* center on 6px track */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--bg-dark);
+  transition: transform 0.2s, background 0.2s;
 }
 
 input[type=range]:hover::-webkit-slider-thumb {
-  transform: scale(1.2);
+  transform: scale(1.1);
+  background: var(--c-accent);
+}
+
+/* Back Button */
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  background: rgba(13, 17, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  /* In case it's an anchor */
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-2px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .sim-controls-overlay {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 50vh;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    border-right: none;
+    border-left: none;
+    padding: 20px;
+    background: rgba(13, 17, 23, 0.95);
+  }
+
+  .back-btn {
+    top: 15px;
+    left: 15px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
 }

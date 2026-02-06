@@ -97,7 +97,7 @@ export function ThreeChilli({ data }) {
   return (
     <group dispose={null}>
       <Center top>
-        <group scale={0.35} position={[0, -4, 1.5]}>
+        <group scale={1.3} position={[0, -3.75, 1.5]}>
           <primitive object={scene} />
         </group>
       </Center>

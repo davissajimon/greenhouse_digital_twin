@@ -4,7 +4,7 @@ import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 export function ThreePea({ data }) {
     // Currently using healthy_tomato as placeholder per previous context
-    const { scene } = useGLTF('/pea_v2.glb');
+    const { scene } = useGLTF('/okra2.glb');
 
     useEffect(() => {
         const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };
@@ -98,7 +98,7 @@ export function ThreePea({ data }) {
     return (
         <group dispose={null}>
             <Center top>
-                <group scale={0.5} position={[0, 0, -5]}>
+                <group scale={1.5} position={[0, 3.25, -5]}>
                     <primitive object={scene} />
                 </group>
             </Center>

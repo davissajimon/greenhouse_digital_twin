@@ -10,15 +10,15 @@ import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 import { applyEdgeCorrections } from "./utils/SensorCorrelations";
 
 function Loader() {
-  return <Html center><div style={{ color: 'white' }}>Loading...</div></Html>;
+  return <Html center><div style={{ color: 'white', fontFamily: 'var(--font-hero)' }}>Loading...</div></Html>;
 }
 
 function ErrorFallback() {
   return (
     <Html center>
-      <div style={{ color: '#ff6b6b', fontSize: '16px', textAlign: 'center' }}>
+      <div style={{ color: '#ff6b6b', fontSize: '16px', textAlign: 'center', background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '8px' }}>
         <p>Failed to load 3D model</p>
-        <p style={{ fontSize: '12px', opacity: 0.7 }}>Please try refreshing the page</p>
+        <p style={{ fontSize: '12px', opacity: 0.7 }}>Please refresh the page</p>
       </div>
     </Html>
   );
@@ -28,11 +28,6 @@ export default function Simulator() {
   const navigate = useNavigate();
   const [plant, setPlant] = useState("tomato");
   const [hasError, setHasError] = useState(false);
-  const [viewportSize, setViewportSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768
-  });
-  const viewportRef = useRef(null);
 
   // Manual Sim State
   const [controls, setControls] = useState({
@@ -81,213 +76,176 @@ export default function Simulator() {
     const sunColor = isNight ? '#88aaff' : '#fff5cc'; // Moon Blue vs Sun Warm
     const sunPos = isNight ? [-10, 10, -5] : [10, 15, 10]; // Opposite sides
 
-    // Background Interpolation (Simple Step for now)
-    const bgHex = isNight ? '#04060f' : '#181a1b';
+    // Background Interpolation
+    const bgHex = isNight ? '#04060f' : '#101827'; // Matched Home dark bg
 
     return { ambientInt, dirInt, sunColor, sunPos, bgHex, isNight };
   }, [controls.light]);
 
-  // Handle window resize for responsive scaling
-  useEffect(() => {
-    const handleResize = () => {
-      if (viewportRef.current) {
-        const width = viewportRef.current.clientWidth;
-        const height = viewportRef.current.clientHeight;
-        setViewportSize({ width, height });
-      }
-    };
-
-    // Initial size
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Handle page refresh - keep user on Simulator page if it loads successfully
+  // Handle page refresh logic
   useEffect(() => {
     const handleBeforeUnload = () => {
       sessionStorage.setItem('simulatorActive', 'true');
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Clear the flag on component unmount
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       sessionStorage.removeItem('simulatorActive');
     };
   }, []);
 
-  // Error boundary fallback
+  // Error boundary reset
   useEffect(() => {
     if (hasError) {
-      const timer = setTimeout(() => {
-        setHasError(false);
-      }, 3000);
+      const timer = setTimeout(() => setHasError(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [hasError]);
 
   return (
     <div className="sim-container">
+      {/* Back Button */}
+      <button className="back-btn" onClick={() => navigate('/')}>
+        &larr; Home
+      </button>
 
-      <div className="sim-content">
+      {/* Main 3D Viewport - Absolute Background */}
+      <div className="sim-viewport-wrapper">
+        {hasError ? (
+          <ErrorFallback />
+        ) : (
+          <Canvas
+            camera={{ position: [0, 1, 5], fov: 50 }}
+            shadows
+            style={{ width: '100%', height: '100%' }}
+            gl={{ preserveDrawingBuffer: true, antialias: true }}
+            onError={() => setHasError(true)}
+          >
+            <color attach="background" args={[lighting.bgHex]} />
+            <ambientLight intensity={lighting.ambientInt} />
+            <directionalLight
+              position={lighting.sunPos}
+              intensity={lighting.dirInt}
+              color={lighting.sunColor}
+              castShadow
+              shadow-mapSize={[2048, 2048]}
+              shadow-bias={-0.0005}
+            />
 
-        {/* Main 3D Viewport */}
-        <div className="sim-viewport-wrapper" ref={viewportRef}>
-          {hasError ? (
-            <ErrorFallback />
-          ) : (
-            <Canvas
-              camera={{ position: [0, 1, 5], fov: 50 }}
-              shadows
-              style={{ width: '100%', height: '100%' }}
-              onError={() => setHasError(true)}
-            >
-              <color attach="background" args={[lighting.bgHex]} />
-              <ambientLight intensity={lighting.ambientInt} />
-              <directionalLight
-                position={lighting.sunPos}
-                intensity={lighting.dirInt}
-                color={lighting.sunColor}
-                castShadow
-                shadow-bias={-0.0005}
-              />
+            {/* Visual Sun/Moon */}
+            <mesh position={lighting.sunPos}>
+              <sphereGeometry args={[isFinite(lighting.dirInt) && lighting.dirInt > 0 ? 0.8 : 0, 32, 32]} />
+              <meshBasicMaterial color={lighting.sunColor} toneMapped={false} />
+            </mesh>
 
-              {/* Sun/Moon Visual */}
-              <mesh position={lighting.sunPos}>
-                <sphereGeometry args={[isFinite(lighting.dirInt) && lighting.dirInt > 0 ? 0.8 : 0, 32, 32]} />
-                <meshBasicMaterial color={lighting.sunColor} toneMapped={false} />
-                {/* Glow effect for moon/sun */}
-                <pointLight intensity={lighting.dirInt * 0.5} distance={10} color={lighting.sunColor} />
+            <Environment preset="city" />
+
+            <Suspense fallback={<Loader />}>
+              {plant === "tomato" && <ThreeTomato data={controls} />}
+              {plant === "chilli" && <ThreeChilli data={controls} />}
+              {plant === "okra" && <ThreePea data={controls} />}
+
+              {/* Floor Circle */}
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+                <circleGeometry args={[10, 64]} />
+                <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
               </mesh>
+            </Suspense>
 
-              <Environment preset="city" />
-
-              <Suspense fallback={<Loader />}>
-                {plant === "tomato" && <ThreeTomato data={controls} />}
-                {plant === "chilli" && <ThreeChilli data={controls} />}
-                {plant === "okra" && <ThreePea data={controls} />}
-
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-                  <circleGeometry args={[10, 64]} />
-                  <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
-                </mesh>
-              </Suspense>
-
-              <OrbitControls minPolarAngle={0.5} maxPolarAngle={1.6} />
-            </Canvas>
-          )}
-
-        </div>
-
-        {/* HUD Overlay for Controls */}
-        <div className="sim-controls-overlay">
-          <h2>Simulation Lab</h2>
-
-          {/* Plant Selector */}
-          <div className="sim-select-group">
-            <label>Selected Plant</label>
-            <select
-              value={plant}
-              onChange={(e) => setPlant(e.target.value)}
-              className="sim-dropdown"
-            >
-              <option value="tomato">Tomato Plant</option>
-              <option value="chilli">Chilli Plant</option>
-              <option value="okra">Lady's Finger (Okra)</option>
-            </select>
-          </div>
-
-          {/* Status Indicator */}
-          <div className="sim-status" style={{ borderLeftColor: healthStatus.color }}>
-            <span className="status-label">Detected Condition</span>
-            <span className="status-value" style={{ color: healthStatus.color }}>
-              {healthStatus.label}
-            </span>
-          </div>
-
-          {/* Correlation Feedback */}
-          {correlationMsg && (
-            <div style={{
-              marginTop: '12px', padding: '8px 12px', background: 'rgba(74, 155, 127, 0.2)',
-              border: '1px solid #4A9B7F', borderRadius: '6px', fontSize: '0.85rem', color: '#8FBC8F',
-              animation: 'fadeIn 0.3s'
-            }}>
-              ℹ️ {correlationMsg}
-            </div>
-          )}
-
-          {/* Sliders */}
-          <div className="sim-slider-group">
-            <div className="slider-item">
-              <div className="slider-header">
-                <span>Air Temp</span>
-                <span className="slider-value">{controls.temperature}°C</span>
-              </div>
-              <input
-                type="range" min="-20" max="70" step="0.5"
-                value={controls.temperature}
-                onChange={(e) => updateControl("temperature", e.target.value)}
-              />
-            </div>
-
-            <div className="slider-item">
-              <div className="slider-header">
-                <span>Humidity</span>
-                <span className="slider-value">{controls.humidity}%</span>
-              </div>
-              <input
-                type="range" min="0" max="100" step="1"
-                value={controls.humidity}
-                onChange={(e) => updateControl("humidity", e.target.value)}
-              />
-            </div>
-
-            <div className="slider-item">
-              <div className="slider-header">
-                <span>Soil Moisture</span>
-                <span className="slider-value">{controls.soil_moisture}%</span>
-              </div>
-              <input
-                type="range" min="0" max="100" step="1"
-                value={controls.soil_moisture}
-                onChange={(e) => updateControl("soil_moisture", e.target.value)}
-              />
-            </div>
-
-            <div className="slider-item">
-              <div className="slider-header">
-                <span>Soil Temp</span>
-                <span className="slider-value">{controls.soil_temperature}°C</span>
-              </div>
-              <input
-                type="range" min="-10" max="40" step="1"
-                value={controls.soil_temperature}
-                onChange={(e) => updateControl("soil_temperature", e.target.value)}
-              />
-            </div>
-
-            <div className="slider-item">
-              <div className="slider-header">
-                <span>Light</span>
-                <span className="slider-value">{controls.light}</span>
-              </div>
-              <input
-                type="range" min="0" max="1500" step="50"
-                value={controls.light}
-                onChange={(e) => updateControl("light", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '10px' }}>
-            Adjust sliders to trigger conditions like Frost, Heat Stress, Root Rot, etc.
-          </div>
-        </div>
-
+            <OrbitControls minPolarAngle={0.2} maxPolarAngle={1.6} enablePan={false} />
+          </Canvas>
+        )}
       </div>
+
+      {/* Floating Glass Control Panel */}
+      <div className="sim-controls-overlay">
+        <h2>Simulation Lab</h2>
+
+        <div className="sim-select-group">
+          <label>Selected Specimen</label>
+          <select
+            value={plant}
+            onChange={(e) => setPlant(e.target.value)}
+            className="sim-dropdown"
+          >
+            <option value="tomato">Tomato (Solanum lycopersicum)</option>
+            <option value="chilli">Chilli (Capsicum annuum)</option>
+            <option value="okra">Okra (Abelmoschus esculentus)</option>
+          </select>
+        </div>
+
+        <div className="sim-status" style={{ borderLeftColor: healthStatus.color }}>
+          <span className="status-label">Live Diagnosis</span>
+          <span className="status-value" style={{ color: healthStatus.color }}>
+            {healthStatus.label}
+          </span>
+        </div>
+
+        {correlationMsg && (
+          <div style={{
+            padding: '8px 12px', background: 'rgba(74, 155, 127, 0.2)',
+            border: '1px solid #4A9B7F', borderRadius: '6px', fontSize: '0.8rem', color: '#8FBC8F',
+            animation: 'fadeIn 0.3s'
+          }}>
+            ℹ️ {correlationMsg}
+          </div>
+        )}
+
+        <div className="sim-slider-group">
+          <SliderControl
+            label="Air Temperature"
+            value={controls.temperature}
+            unit="°C"
+            min={-10} max={60} step={0.5}
+            onChange={(v) => updateControl("temperature", v)}
+          />
+          <SliderControl
+            label="Relative Humidity"
+            value={controls.humidity}
+            unit="%"
+            min={0} max={100} step={1}
+            onChange={(v) => updateControl("humidity", v)}
+          />
+          <SliderControl
+            label="Soil Moisture"
+            value={controls.soil_moisture}
+            unit="%"
+            min={0} max={100} step={1}
+            onChange={(v) => updateControl("soil_moisture", v)}
+          />
+          <SliderControl
+            label="Soil Temperature"
+            value={controls.soil_temperature}
+            unit="°C"
+            min={-5} max={45} step={1}
+            onChange={(v) => updateControl("soil_temperature", v)}
+          />
+          <SliderControl
+            label="Light Intensity"
+            value={controls.light}
+            unit="lux"
+            min={0} max={2000} step={50}
+            onChange={(v) => updateControl("light", v)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper for cleaner code
+function SliderControl({ label, value, unit, min, max, step, onChange }) {
+  return (
+    <div className="slider-item">
+      <div className="slider-header">
+        <span>{label}</span>
+        <span className="slider-value">{value}{unit}</span>
+      </div>
+      <input
+        type="range" min={min} max={max} step={step}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
