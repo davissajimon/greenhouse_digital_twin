@@ -213,7 +213,8 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorId, 
       temperature: apiData.temperature,
       humidity: apiData.humidity,
       soil_moisture: apiData.soil_moisture,
-      soil_temperature: apiData.soil_temperature
+      soil_temperature: apiData.soil_temperature,
+      light_intensity: apiData.light_intensity
     };
     const { newState } = applyEdgeCorrections(raw, null);
     return newState;
@@ -573,6 +574,14 @@ export default function Home() {
           <button className="nav-btn next" onClick={handleNext}>&rarr;</button>
         </>
       )}
+
+      {/* Light Intensity Widget (Top Left) */}
+      <div className={`light-intensity-widget ${viewMode === 'focus' && activePlantData.data ? 'visible' : ''}`}>
+        <div className="light-label">Light Intensity</div>
+        <div className="light-value">
+          {activePlantData.data?.light_intensity || 0}<span className="light-unit">LUX</span>
+        </div>
+      </div>
 
       <Sidebar
         visible={viewMode === 'focus'}
