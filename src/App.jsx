@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { DarkModeProvider } from "./DarkModeContext";
 import { NatureLoader } from "./components/NatureLoader";
 
@@ -67,8 +67,6 @@ const ConditionalFooter = () => {
   return <FooterWrapper />;
 };
 
-// Helper to access router context
-import { useLocation } from "react-router-dom";
 const FooterWrapper = () => {
   const location = useLocation();
   // Hide footer on Home ('/') and Scalability ('/scalability') as per "Focused" requests
