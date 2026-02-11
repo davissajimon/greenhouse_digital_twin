@@ -114,16 +114,16 @@ export function evaluatePlantHealth(data) {
         return { id: CONDITIONS.FLOWER_DROP, label: "Flower Drop Risk", color: CONDITION_COLORS.FLOWER_DROP };
     }
 
-    // 8. ROOT COLD STRESS
-    // User spec: 18-22 Air, 10-14 Soil. We focus on the Soil Temp being the driver here.
-    if (st < 15 && st > 1) {
-        return { id: CONDITIONS.ROOT_COLD_STRESS, label: "Root Cold Stress", color: CONDITION_COLORS.ROOT_COLD_STRESS };
-    }
-
-    // 9. COLD STRESS (Air)
+    // 8. COLD STRESS (Air)
     // User spec: 8-11C Air
     if (t < 12 && t > 1) {
         return { id: CONDITIONS.COLD_STRESS, label: "Cold Stress", color: CONDITION_COLORS.COLD_STRESS };
+    }
+
+    // 9. ROOT COLD STRESS
+    // User spec: 18-22 Air, 10-14 Soil. We focus on the Soil Temp being the driver here.
+    if (st < 15 && st > 1) {
+        return { id: CONDITIONS.ROOT_COLD_STRESS, label: "Root Cold Stress", color: CONDITION_COLORS.ROOT_COLD_STRESS };
     }
 
     // Check against species verification for "Optimal" vs "Sub-optimal" that isn't a crisis

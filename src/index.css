@@ -19,10 +19,11 @@
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
+body,
+html {
   margin: 0;
   padding: 0;
-  background-color: var(--c-bg-dark);
+  background-color: #000000;
   color: var(--c-text-primary);
   font-family: var(--font-hero);
   -webkit-font-smoothing: antialiased;

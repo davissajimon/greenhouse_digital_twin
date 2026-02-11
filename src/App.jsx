@@ -1,40 +1,57 @@
 import React from "react";
 import "./App.css";
-import Home from "./Home";
-import Simulator from "./Simulator";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import MainNavbar from "./Navbar";
-import Footer from "./Footer";
 import { DarkModeProvider } from "./DarkModeContext";
+import { NatureLoader } from "./components/NatureLoader";
 
+// Lazy load all major components for better code splitting
+const Home = React.lazy(() => import("./Home"));
+const Simulator = React.lazy(() => import("./Simulator"));
+const MainNavbar = React.lazy(() => import("./Navbar"));
+const Footer = React.lazy(() => import("./Footer"));
 const ScalabilityTest = React.lazy(() => import("./scalability_test"));
+
+// Reusable loading fallback component
+const LoadingFallback = ({ message }) => (
+  <NatureLoader message={message} />
+);
 
 function App() {
   return (
     <DarkModeProvider>
       <div className="cinematic-noise"></div>
       <Router>
-        <MainNavbar />
+        <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
+          <MainNavbar />
+        </React.Suspense>
 
         <Routes>
-          <Route
-            path="/"
-            element={<Home />}
-          />
-
-          <Route
-            path="/Sim"
-            element={<Simulator />}
-          />
-
-          <Route
-            path="/scalability"
-            element={
-              <React.Suspense fallback={<div style={{ color: 'white', textAlign: 'center', marginTop: '20%' }}>Loading Scalability Test...</div>}>
-                <ScalabilityTest />
-              </React.Suspense>
-            }
-          />
+          <Route path="/">
+            <Route
+              index
+              element={
+                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
+                  <Home />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="Sim"
+              element={
+                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
+                  <Simulator />
+                </React.Suspense>
+              }
+            />
+            <Route
+              path="scalability"
+              element={
+                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
+                  <ScalabilityTest />
+                </React.Suspense>
+              }
+            />
+          </Route>
         </Routes>
         <ConditionalFooter />
       </Router>
@@ -43,7 +60,7 @@ function App() {
 }
 
 const ConditionalFooter = () => {
-  const location = window.location; // Simple check, or use useLocation
+  // Simple check, or use useLocation
   // To use useLocation, we need to be inside the Router. We are inside Router in App return.
   // We can't use useLocation() directly in App() because App() *creates* the Router.
   // But we can use a child component.

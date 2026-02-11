@@ -327,7 +327,7 @@ function Sidebar({ visible, plant, onClose, apiState, currentSensorId, onUpdateS
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             <button style={{
               background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#fff', width: '100%', padding: '12px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(4px)'
-            }} onClick={() => navigate('/Sim')}
+            }} onClick={() => navigate("/Sim")}
               onMouseOver={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.2)'; }}
               onMouseOut={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.1)'; }}
             >

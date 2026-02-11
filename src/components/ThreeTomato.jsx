@@ -1,18 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useGLTF, Center } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
-export function ThreeTomato({ data }) {
+// Preload the model for better performance
+useGLTF.preload('/Untitled.glb');
+
+function ThreeTomatoComponent({ data, onLoad }) {
     const { scene } = useGLTF('/Untitled.glb');
+    const clone = useMemo(() => scene.clone(true), [scene]);
+
+    // Trigger onLoad when component mounts (and model is effectively ready)
+    useEffect(() => {
+        if (onLoad) onLoad();
+    }, [onLoad]);
+
+    // Memoize health evaluation to avoid recalculation
+    const healthState = useMemo(() => {
+        const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };
+        return evaluatePlantHealth(safeData);
+    }, [data]);
 
     useEffect(() => {
-        // Evaluate condition based on full sensor data
-        // Check if data exists, if not use default safely
-        const safeData = data || { temperature: 25, humidity: 60, soil_moisture: 50 };
-        const healthState = evaluatePlantHealth(safeData);
         const condition = healthState.id;
 
-        scene.traverse((child) => {
+        clone.traverse((child) => {
             if (child.isMesh) {
                 // Ensure unique material
                 if (!child.userData.isCloned) {
@@ -53,7 +64,22 @@ export function ThreeTomato({ data }) {
                             child.material.roughness = 0.2; // Shiny ice
                             child.material.emissive.setHex(0x001133);
                         }
+                        // Frost damage: hide ALL leaves
+                        if (isLeaf) {
+                            child.visible = false;
+                        }
                         if (isFruit) child.visible = false; // Fruit drop/hidden in frost
+                        break;
+
+                    case CONDITIONS.COLD_STRESS:
+                        // Cold Stress: Hide all leaves and fruit (severe damage/stunted)
+                        if (isLeaf) {
+                            child.visible = false;
+                        }
+                        // Flower/Fruit disappear
+                        if (isFruit) {
+                            child.visible = false;
+                        }
                         break;
 
                     case CONDITIONS.HEAT_STRESS:
@@ -70,6 +96,42 @@ export function ThreeTomato({ data }) {
                             child.material.color.set('#8B7355'); // Dried Earth Color
                             child.material.roughness = 1.0;
                         }
+                        if (isFruit) {
+                            child.material.color.set('#3d2b1f'); // Brownish-black
+                            child.material.roughness = 1.0; // Non-shiny / dry
+                        }
+                        if (isStem) {
+                            child.material.color.set('#2F1B10'); // Dark Blackish-Brown
+                            child.material.roughness = 1.0;
+                        }
+                        break;
+
+                    case CONDITIONS.ROOT_COLD_STRESS:
+                        // Root Cold: Cold creeps up stem
+                        if (isStem) {
+                            child.material.color.set('#88B0C8'); // Icy/Steel Blue Stem
+                            child.material.roughness = 0.4;
+                        }
+                        if (isLeaf) {
+                            child.material.color.set('#4A708B'); // Cold bluish-green leaves
+                        }
+                        if (isFruit) {
+                            child.material.color.set('#87CEEB'); // Sky Blue
+                            child.material.roughness = 0.3;
+                        }
+                        break;
+
+                    case CONDITIONS.ROOT_HEAT_STRESS:
+                        // Whole plant reddish (Root Heat Stress)
+                        if (isLeaf) {
+                            child.material.color.set('#CD5C5C'); // Indian Red / Reddish
+                        }
+                        if (isStem) {
+                            child.material.color.set('#8B0000'); // Dark Red
+                        }
+                        if (isFruit) {
+                            child.material.color.set('#FF4500'); // Orange Red
+                        }
                         break;
 
                     case CONDITIONS.ROOT_ROT:
@@ -79,11 +141,20 @@ export function ThreeTomato({ data }) {
                         break;
 
                     case CONDITIONS.MOLD_RISK:
+                    case CONDITIONS.HIGH_HUMIDITY:
                     case CONDITIONS.DISEASE_ZONE:
-                        // White/Grayish spotting (simulated by color wash)
+                        // Pale yellow (chlorosis) + Droopy
                         if (isLeaf) {
-                            child.material.color.set('#778877'); // Moldy Gray Green
-                            child.material.roughness = 0.9;
+                            child.material.color.set('#9ACD32'); // Pale Yellow Green
+                            child.material.transparent = true;
+                            child.material.opacity = 0.7; // Weak appearance
+                            // Visual droop (pseudo-simulated by rotation if possible, but here just color/opacity is safer for static mesh)
+                            // If we want actual rotation, we'd need to manipulate the mesh rotation, but that persists permanently.
+                            // Better to stick to material changes for "unhealthy look" or minimal safe scale Y.
+                        }
+                        if (isFruit) {
+                            child.material.color.set('#8B4500'); // Dull brownish red
+                            child.material.roughness = 0.8;
                         }
                         break;
 
@@ -93,19 +164,34 @@ export function ThreeTomato({ data }) {
                         }
                         break;
 
-                    case CONDITIONS.BLOSSOM_DROP:
-                        // Logic handled by hiding fruit usually, assuming fruit = blossom stage in this simplified model
-                        if (isFruit) child.visible = false;
+                    case CONDITIONS.FLOWER_DROP:
+                        // No flowers/fruit + Dull leaves
+                        if (isFruit) {
+                            child.visible = false;
+                        }
+                        if (isLeaf) {
+                            child.material.color.set('#6E8B3D'); // Dull Olive Green
+                        }
                         break;
 
-                    case CONDITIONS.WILTING_WET:
-                        // High heat + water logging = Boiled / collapsed
+                    case CONDITIONS.WATERLOGGING:
+                        // Waterlogging: Pale yellow leaves, lower leaves drop, no fruit
                         if (isLeaf) {
-                            child.material.color.set('#4B5320'); // Army Green (Wilting)
-                            child.material.roughness = 0.9;
+                            child.material.color.set('#F0E68C'); // Khaki (Pale Yellow)
+                            child.material.transparent = true;
+                            child.material.opacity = 0.8;
+
+                            // Simulate lower leaves dropping (approx 60% loss)
+                            if (child.uuid.charCodeAt(0) % 5 < 3) {
+                                child.visible = false;
+                            }
                         }
-                        if (isStem) child.material.color.set('#4A4A4A');
-                        if (isFruit) child.visible = false;
+                        if (isFruit) {
+                            child.visible = false; // Flowers/Fruit drop
+                        }
+                        if (isStem) {
+                            child.material.color.set('#5C4033'); // Darker wet stem
+                        }
                         break;
 
                     case CONDITIONS.SLOW_GROWTH:
@@ -119,15 +205,21 @@ export function ThreeTomato({ data }) {
                 }
             }
         });
-    }, [scene, data]);
+    }, [clone, healthState]);
 
     return (
-        <group dispose={null}>
+        <group>
             <Center top>
-                <group scale={0.75} position={[0, 2, -5]}>
-                    <primitive object={scene} />
+                <group scale={healthState.id === CONDITIONS.COLD_STRESS ? 0.45 : 0.5625} position={[0, 2, -5]}>
+                    <primitive object={clone} />
                 </group>
             </Center>
         </group>
     );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const ThreeTomato = React.memo(ThreeTomatoComponent, (prevProps, nextProps) => {
+    // Deep comparison of data object
+    return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data);
+});

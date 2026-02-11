@@ -1,33 +1,83 @@
-import React, { useState, useMemo, Suspense, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo, Suspense, useEffect } from "react";
 import "./Simulator.css";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
+import { Vector3 } from "three";
+import { NatureLoader } from "./components/NatureLoader";
 import { ThreeTomato } from "./components/ThreeTomato";
 import { ThreeChilli } from "./components/ThreeChilli";
 import { ThreePea } from "./components/ThreePea";
 import { evaluatePlantHealth } from "./utils/PlantHealthEngine";
 import { applyEdgeCorrections } from "./utils/SensorCorrelations";
 
-function Loader() {
-  return <Html center><div style={{ color: 'white', fontFamily: 'var(--font-hero)' }}>Loading...</div></Html>;
+// --- CAMERA INTRO COMPONENT ---
+function CameraIntro({ onFinish }) {
+  const { camera } = useThree();
+  const vec = useMemo(() => new Vector3(), []); // Stable reference
+
+  useEffect(() => {
+    // Start way out and high
+    camera.position.set(15, 8, 15);
+    camera.lookAt(0, 1, 0);
+  }, [camera]);
+
+  useFrame((state) => {
+    // Lerp towards target position [0, 1.5, 6]
+    state.camera.position.lerp(vec.set(0, 1.5, 6), 0.05);
+    state.camera.lookAt(0, 1, 0);
+
+    // If close enough, finish animation to hand off to OrbitControls
+    if (state.camera.position.distanceTo(vec) < 0.1) {
+      onFinish();
+    }
+  });
+  return null;
 }
 
+// --- CANVAS CLEANUP COMPONENT ---
+function CanvasCleanup() {
+  // Removed aggressive disposal to prevent breaking cached GLTF assets on refresh/navigation.
+  // React Three Fiber handles component unmounting cleanup.
+  return null;
+}
+
+// function Loader() { ... } // Removed in favor of global overlay loading
+
+// Fixed ErrorFallback to use standard HTML since it renders *outside* Canvas
 function ErrorFallback() {
   return (
-    <Html center>
-      <div style={{ color: '#ff6b6b', fontSize: '16px', textAlign: 'center', background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '8px' }}>
-        <p>Failed to load 3D model</p>
-        <p style={{ fontSize: '12px', opacity: 0.7 }}>Please refresh the page</p>
-      </div>
-    </Html>
+    <div style={{
+      position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+      color: '#ff6b6b', fontSize: '16px', textAlign: 'center', background: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '8px', zIndex: 100
+    }}>
+      <p>Failed to load 3D model</p>
+      <p style={{ fontSize: '12px', opacity: 0.7 }}>Please refresh the page</p>
+    </div>
   );
 }
 
+// Internal ErrorBoundary for 3D content (inside Canvas)
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error, errorInfo) { console.error("3D Error:", error, errorInfo); }
+  render() {
+    if (this.state.hasError) return <Html center><div style={{ color: 'red', background: 'rgba(0,0,0,0.8)', padding: '10px' }}>3D Error. Check Console.</div></Html>;
+    return this.props.children;
+  }
+}
+
 export default function Simulator() {
-  const navigate = useNavigate();
   const [plant, setPlant] = useState("tomato");
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showConditions, setShowConditions] = useState(false);
+  const [introFinished, setIntroFinished] = useState(false);
+
+  const handleModelLoad = () => {
+    // Artificial delay to ensure smooth transition and no "pop-in" of assets
+    setTimeout(() => setIsLoading(false), 1500);
+  };
 
   // Manual Sim State
   const [controls, setControls] = useState({
@@ -40,6 +90,33 @@ export default function Simulator() {
 
   const [correlationMsg, setCorrelationMsg] = useState(null);
   const msgTimer = React.useRef(null);
+
+  // Preset values for each condition to instantly visualize them
+  const CONDITION_PRESETS = {
+    NORMAL: { temperature: 25, humidity: 60, soil_moisture: 50, soil_temperature: 20, light: 1000 },
+    HEAT_STRESS: { temperature: 40, humidity: 40, soil_moisture: 40, soil_temperature: 25, light: 1500 },
+    COLD_STRESS: { temperature: 8, humidity: 60, soil_moisture: 50, soil_temperature: 10, light: 800 },
+    FROST: { temperature: -2, humidity: 40, soil_moisture: 30, soil_temperature: 0, light: 500 },
+    HIGH_HUMIDITY: { temperature: 25, humidity: 95, soil_moisture: 60, soil_temperature: 20, light: 800 },
+    DROUGHT: { temperature: 30, humidity: 30, soil_moisture: 10, soil_temperature: 25, light: 1500 },
+    ROOT_COLD_STRESS: { temperature: 18, humidity: 60, soil_moisture: 50, soil_temperature: 10, light: 800 },
+    ROOT_HEAT_STRESS: { temperature: 30, humidity: 50, soil_moisture: 40, soil_temperature: 40, light: 1200 },
+    FLOWER_DROP: { temperature: 32, humidity: 30, soil_moisture: 40, soil_temperature: 25, light: 1200 },
+    WATERLOGGING: { temperature: 25, humidity: 80, soil_moisture: 95, soil_temperature: 20, light: 800 }
+  };
+
+  const applyCondition = (key) => {
+    const preset = CONDITION_PRESETS[key];
+    if (preset) {
+      setControls(prev => ({ ...prev, ...preset }));
+      setCorrelationMsg(`Applying ${key.replace(/_/g, ' ')} simulation...`);
+      if (msgTimer.current) clearTimeout(msgTimer.current);
+      msgTimer.current = setTimeout(() => {
+        setCorrelationMsg(null);
+        msgTimer.current = null;
+      }, 2000);
+    }
+  };
 
   const updateControl = (key, value) => {
     const numValue = Number(value);
@@ -88,6 +165,7 @@ export default function Simulator() {
       sessionStorage.setItem('simulatorActive', 'true');
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       sessionStorage.removeItem('simulatorActive');
@@ -104,24 +182,48 @@ export default function Simulator() {
 
   return (
     <div className="sim-container">
-      {/* Back Button */}
-      <button className="back-btn" onClick={() => navigate('/')}>
-        &larr; Home
-      </button>
+
 
       {/* Main 3D Viewport - Absolute Background */}
-      <div className="sim-viewport-wrapper">
+      <div className="sim-viewport-wrapper" style={{ background: '#0d1117' }}>
         {hasError ? (
           <ErrorFallback />
         ) : (
           <Canvas
-            camera={{ position: [0, 1, 5], fov: 50 }}
+            camera={{ position: [0, 1.5, 6], fov: 55 }}
             shadows
-            style={{ width: '100%', height: '100%' }}
-            gl={{ preserveDrawingBuffer: true, antialias: true }}
-            onError={() => setHasError(true)}
+            style={{ width: '100%', height: '100%', background: '#0d1117' }}
+            gl={{
+              preserveDrawingBuffer: true,
+              antialias: true,
+              failIfMajorPerformanceCaveat: false,
+              logarithmicDepthBuffer: false,
+              stencil: false,
+              depth: true
+            }}
+
+            onCreated={(state) => {
+              console.log("Canvas created successfully");
+              state.gl.setClearColor('#0d1117');
+              const canvas = state.gl.domElement;
+              const handleContextLoss = () => {
+                console.warn("WebGL context lost on Simulator");
+                setHasError(true);
+              };
+              const handleContextRestoration = () => {
+                console.warn("WebGL context restored on Simulator");
+                setHasError(false);
+              };
+              canvas.addEventListener("webglcontextlost", handleContextLoss, false);
+              canvas.addEventListener("webglcontextrestored", handleContextRestoration, false);
+              return () => {
+                canvas.removeEventListener("webglcontextlost", handleContextLoss);
+                canvas.removeEventListener("webglcontextrestored", handleContextRestoration);
+              };
+            }}
           >
             <color attach="background" args={[lighting.bgHex]} />
+            <CanvasCleanup />
             <ambientLight intensity={lighting.ambientInt} />
             <directionalLight
               position={lighting.sunPos}
@@ -140,19 +242,23 @@ export default function Simulator() {
 
             <Environment preset="city" />
 
-            <Suspense fallback={<Loader />}>
-              {plant === "tomato" && <ThreeTomato data={controls} />}
-              {plant === "chilli" && <ThreeChilli data={controls} />}
-              {plant === "okra" && <ThreePea data={controls} />}
+            <ErrorBoundary>
+              <Suspense fallback={null}>
+                {plant === "tomato" && <ThreeTomato data={controls} onLoad={handleModelLoad} />}
+                {plant === "chilli" && <ThreeChilli data={controls} onLoad={handleModelLoad} />}
+                {plant === "okra" && <ThreePea data={controls} onLoad={handleModelLoad} />}
 
-              {/* Floor Circle */}
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-                <circleGeometry args={[10, 64]} />
-                <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
-              </mesh>
-            </Suspense>
+                {/* Floor Circle */}
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
+                  <circleGeometry args={[10, 64]} />
+                  <meshStandardMaterial color="#0a0a0f" roughness={0.6} metalness={0.4} opacity={0.8} transparent />
+                </mesh>
+              </Suspense>
+            </ErrorBoundary>
 
-            <OrbitControls minPolarAngle={0.2} maxPolarAngle={1.6} enablePan={false} />
+            {/* Intro Animation -> Control Handoff */}
+            {!introFinished && <CameraIntro onFinish={() => setIntroFinished(true)} />}
+            <OrbitControls makeDefault enabled={introFinished} />
           </Canvas>
         )}
       </div>
@@ -180,6 +286,8 @@ export default function Simulator() {
             {healthStatus.label}
           </span>
         </div>
+
+        {/* Conditions Panel Removed from here */}
 
         {correlationMsg && (
           <div style={{
@@ -229,6 +337,74 @@ export default function Simulator() {
           />
         </div>
       </div>
+
+      {/* Independent Horizontal Conditions Dock */}
+      <div className={`conditions-dock ${showConditions ? 'expanded' : ''}`}>
+        <button
+          className="dock-toggle"
+          onClick={() => setShowConditions(!showConditions)}
+        >
+          {showConditions ? 'Close Reference' : 'Health Reference'}
+        </button>
+
+        <div className="dock-content">
+          <div className="dock-grid">
+            <ConditionItem
+              color="#2E8B57" label="Normal" desc="Optimal"
+              onClick={() => applyCondition("NORMAL")}
+              isActive={healthStatus.id === "NORMAL"}
+            />
+            <ConditionItem
+              color="#FF8C00" label="Heat Str." desc=">35°C"
+              onClick={() => applyCondition("HEAT_STRESS")}
+              isActive={healthStatus.id === "HEAT_STRESS"}
+            />
+            <ConditionItem
+              color="#87CEEB" label="Cold" desc="2-11°C"
+              onClick={() => applyCondition("COLD_STRESS")}
+              isActive={healthStatus.id === "COLD_STRESS"}
+            />
+            <ConditionItem
+              color="#00BFFF" label="Frost" desc="<1°C"
+              onClick={() => applyCondition("FROST")}
+              isActive={healthStatus.id === "FROST"}
+            />
+            <ConditionItem
+              color="#708090" label="Humidity" desc=">85%"
+              onClick={() => applyCondition("HIGH_HUMIDITY")}
+              isActive={healthStatus.id === "HIGH_HUMIDITY"}
+            />
+            <ConditionItem
+              color="#CD853F" label="Drought" desc="<30% Moist"
+              onClick={() => applyCondition("DROUGHT")}
+              isActive={healthStatus.id === "DROUGHT"}
+            />
+            <ConditionItem
+              color="#4682B4" label="Rt. Cold" desc="<15°C"
+              onClick={() => applyCondition("ROOT_COLD_STRESS")}
+              isActive={healthStatus.id === "ROOT_COLD_STRESS"}
+            />
+            <ConditionItem
+              color="#A0522D" label="Rt. Heat" desc=">35°C"
+              onClick={() => applyCondition("ROOT_HEAT_STRESS")}
+              isActive={healthStatus.id === "ROOT_HEAT_STRESS"}
+            />
+            <ConditionItem
+              color="#FFD700" label="Flwr Drop" desc="Hot+Dry"
+              onClick={() => applyCondition("FLOWER_DROP")}
+              isActive={healthStatus.id === "FLOWER_DROP"}
+            />
+            <ConditionItem
+              color="#2F4F4F" label="Waterlog" desc=">85% Moist"
+              onClick={() => applyCondition("WATERLOGGING")}
+              isActive={healthStatus.id === "WATERLOGGING"}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Global Loader Overlay - Covers everything until model is ready */}
+      {isLoading && <NatureLoader message="Loading..." />}
     </div>
   );
 }
@@ -246,6 +422,24 @@ function SliderControl({ label, value, unit, min, max, step, onChange }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+    </div>
+  );
+}
+
+// Condition display helper
+// Condition display helper
+function ConditionItem({ color, label, desc, onClick, isActive }) {
+  return (
+    <div
+      className={`condition-item ${isActive ? 'active' : ''}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default', border: isActive ? `1px solid ${color}` : '1px solid transparent' }}
+    >
+      <div className="condition-indicator" style={{ backgroundColor: color }} />
+      <div className="condition-info">
+        <span className="condition-label" style={{ color: isActive ? color : 'rgba(255,255,255,0.9)' }}>{label}</span>
+        <span className="condition-desc">{desc}</span>
+      </div>
     </div>
   );
 }
