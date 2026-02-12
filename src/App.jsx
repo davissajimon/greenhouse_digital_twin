@@ -1,15 +1,15 @@
 import React from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { DarkModeProvider } from "./DarkModeContext";
+import { DarkModeProvider } from "./context/DarkModeContext";
 import { NatureLoader } from "./components/NatureLoader";
 
 // Lazy load all major components for better code splitting
-const Home = React.lazy(() => import("./Home"));
-const Simulator = React.lazy(() => import("./Simulator"));
-const MainNavbar = React.lazy(() => import("./Navbar"));
-const Footer = React.lazy(() => import("./Footer"));
-const ScalabilityTest = React.lazy(() => import("./scalability_test"));
+const Home = React.lazy(() => import("./pages/Home"));
+const Simulator = React.lazy(() => import("./pages/Simulator"));
+const MainNavbar = React.lazy(() => import("./components/Navbar"));
+const Footer = React.lazy(() => import("./components/Footer"));
+const ScalabilityTest = React.lazy(() => import("./pages/ScalabilityTest"));
 
 // Reusable loading fallback component
 const LoadingFallback = ({ message }) => (
@@ -43,14 +43,14 @@ function App() {
                 </React.Suspense>
               }
             />
-            <Route
+            {/* <Route
               path="scalability"
               element={
                 <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
                   <ScalabilityTest />
                 </React.Suspense>
               }
-            />
+            /> */}
           </Route>
         </Routes>
         <ConditionalFooter />

@@ -25,34 +25,48 @@ function ThreeTomatoComponent({ data, onLoad }) {
 
         clone.traverse((child) => {
             if (child.isMesh) {
-                // Ensure unique material
-                if (!child.userData.isCloned) {
-                    child.material = child.material.clone();
-                    child.userData.isCloned = true;
-                    // Backup original color if needed, simplified here by hardcoding defaults
-                }
-
-                // Identify Parts
+                // Determine if we need to process specific materials
                 const name = child.name ? child.name.toLowerCase() : '';
                 const isLeaf = name.includes('leaf') || name.includes('leaves');
                 const isFruit = name.includes('tomato');
                 const isStem = name.includes('stem');
                 const isPot = name.includes('pot');
 
+                // Helper to apply changes to one or many materials
+                const applyToMaterials = (cb) => {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(cb);
+                    } else if (child.material) {
+                        cb(child.material);
+                    }
+                };
+
+                // Ensure unique material (Cloning)
+                if (!child.userData.isCloned) {
+                    if (Array.isArray(child.material)) {
+                        child.material = child.material.map(m => m.clone());
+                    } else if (child.material) {
+                        child.material = child.material.clone();
+                    }
+                    child.userData.isCloned = true;
+                }
+
                 // --- RESET TO HEALTHY DEFAULT ---
                 child.visible = true;
-                if (isLeaf) {
-                    child.material.color.set('#2E8B57'); // Healthy Leaf Green
-                    child.material.emissive.setHex(0x000000);
-                    child.material.roughness = 0.5;
-                }
-                if (isStem) child.material.color.set('#3A5F0B');
-                if (isFruit) {
-                    child.material.color.set('#c61b1b'); // Red
-                    child.material.roughness = 0.2;
-                }
-                if (isPot) child.material.color.set('#8B4513');
 
+                applyToMaterials((mat) => {
+                    if (isLeaf) {
+                        mat.color.set('#2E8B57'); // Healthy Leaf Green
+                        mat.emissive.setHex(0x000000);
+                        mat.roughness = 0.5;
+                    }
+                    if (isStem) mat.color.set('#3A5F0B');
+                    if (isFruit) {
+                        mat.color.set('#c61b1b'); // Red
+                        mat.roughness = 0.2;
+                    }
+                    if (isPot) mat.color.set('#8B4513');
+                });
 
                 // --- APPLY CONDITION VISUALS ---
 
@@ -60,9 +74,11 @@ function ThreeTomatoComponent({ data, onLoad }) {
                     case CONDITIONS.FROST:
                         // Blue tint + slight emissive glow (frozen)
                         if (isLeaf || isStem) {
-                            child.material.color.lerp({ r: 0.5, g: 0.7, b: 1 }, 0.6); // Icy Blue mix
-                            child.material.roughness = 0.2; // Shiny ice
-                            child.material.emissive.setHex(0x001133);
+                            applyToMaterials(mat => {
+                                mat.color.lerp({ r: 0.5, g: 0.7, b: 1 }, 0.6); // Icy Blue mix
+                                mat.roughness = 0.2; // Shiny ice
+                                mat.emissive.setHex(0x001133);
+                            });
                         }
                         // Frost damage: hide ALL leaves
                         if (isLeaf) {
@@ -85,59 +101,69 @@ function ThreeTomatoComponent({ data, onLoad }) {
                     case CONDITIONS.HEAT_STRESS:
                         // Yellow/Brown scorching
                         if (isLeaf) {
-                            child.material.color.set('#e6b800'); // Yellowish
-                            child.material.roughness = 0.8; // Dry
+                            applyToMaterials(mat => {
+                                mat.color.set('#e6b800'); // Yellowish
+                                mat.roughness = 0.8; // Dry
+                            });
                         }
                         break;
 
                     case CONDITIONS.DROUGHT:
                         // Brown + Dull
-                        if (isLeaf) {
-                            child.material.color.set('#8B7355'); // Dried Earth Color
-                            child.material.roughness = 1.0;
-                        }
-                        if (isFruit) {
-                            child.material.color.set('#3d2b1f'); // Brownish-black
-                            child.material.roughness = 1.0; // Non-shiny / dry
-                        }
-                        if (isStem) {
-                            child.material.color.set('#2F1B10'); // Dark Blackish-Brown
-                            child.material.roughness = 1.0;
-                        }
+                        applyToMaterials(mat => {
+                            if (isLeaf) {
+                                mat.color.set('#8B7355'); // Dried Earth Color
+                                mat.roughness = 1.0;
+                            }
+                            if (isFruit) {
+                                mat.color.set('#3d2b1f'); // Brownish-black
+                                mat.roughness = 1.0; // Non-shiny / dry
+                            }
+                            if (isStem) {
+                                mat.color.set('#2F1B10'); // Dark Blackish-Brown
+                                mat.roughness = 1.0;
+                            }
+                        });
                         break;
 
                     case CONDITIONS.ROOT_COLD_STRESS:
                         // Root Cold: Cold creeps up stem
-                        if (isStem) {
-                            child.material.color.set('#88B0C8'); // Icy/Steel Blue Stem
-                            child.material.roughness = 0.4;
-                        }
-                        if (isLeaf) {
-                            child.material.color.set('#4A708B'); // Cold bluish-green leaves
-                        }
-                        if (isFruit) {
-                            child.material.color.set('#87CEEB'); // Sky Blue
-                            child.material.roughness = 0.3;
-                        }
+                        applyToMaterials(mat => {
+                            if (isStem) {
+                                mat.color.set('#88B0C8'); // Icy/Steel Blue Stem
+                                mat.roughness = 0.4;
+                            }
+                            if (isLeaf) {
+                                mat.color.set('#4A708B'); // Cold bluish-green leaves
+                            }
+                            if (isFruit) {
+                                mat.color.set('#87CEEB'); // Sky Blue
+                                mat.roughness = 0.3;
+                            }
+                        });
                         break;
 
                     case CONDITIONS.ROOT_HEAT_STRESS:
                         // Whole plant reddish (Root Heat Stress)
-                        if (isLeaf) {
-                            child.material.color.set('#CD5C5C'); // Indian Red / Reddish
-                        }
-                        if (isStem) {
-                            child.material.color.set('#8B0000'); // Dark Red
-                        }
-                        if (isFruit) {
-                            child.material.color.set('#FF4500'); // Orange Red
-                        }
+                        applyToMaterials(mat => {
+                            if (isLeaf) {
+                                mat.color.set('#CD5C5C'); // Indian Red / Reddish
+                            }
+                            if (isStem) {
+                                mat.color.set('#8B0000'); // Dark Red
+                            }
+                            if (isFruit) {
+                                mat.color.set('#FF4500'); // Orange Red
+                            }
+                        });
                         break;
 
                     case CONDITIONS.ROOT_ROT:
                         // Dark stem, sickly leaves
-                        if (isStem) child.material.color.set('#2F1B10'); // Dark Brown/Black
-                        if (isLeaf) child.material.color.set('#556B2F'); // Olive Drab (Sick)
+                        applyToMaterials(mat => {
+                            if (isStem) mat.color.set('#2F1B10'); // Dark Brown/Black
+                            if (isLeaf) mat.color.set('#556B2F'); // Olive Drab (Sick)
+                        });
                         break;
 
                     case CONDITIONS.MOLD_RISK:
@@ -145,22 +171,23 @@ function ThreeTomatoComponent({ data, onLoad }) {
                     case CONDITIONS.DISEASE_ZONE:
                         // Pale yellow (chlorosis) + Droopy
                         if (isLeaf) {
-                            child.material.color.set('#9ACD32'); // Pale Yellow Green
-                            child.material.transparent = true;
-                            child.material.opacity = 0.7; // Weak appearance
-                            // Visual droop (pseudo-simulated by rotation if possible, but here just color/opacity is safer for static mesh)
-                            // If we want actual rotation, we'd need to manipulate the mesh rotation, but that persists permanently.
-                            // Better to stick to material changes for "unhealthy look" or minimal safe scale Y.
+                            applyToMaterials(mat => {
+                                mat.color.set('#9ACD32'); // Pale Yellow Green
+                                mat.transparent = true;
+                                mat.opacity = 0.7; // Weak appearance
+                            });
                         }
                         if (isFruit) {
-                            child.material.color.set('#8B4500'); // Dull brownish red
-                            child.material.roughness = 0.8;
+                            applyToMaterials(mat => {
+                                mat.color.set('#8B4500'); // Dull brownish red
+                                mat.roughness = 0.8;
+                            });
                         }
                         break;
 
                     case CONDITIONS.SUNSCALD:
                         if (isLeaf || isFruit) {
-                            child.material.color.lerp({ r: 1, g: 1, b: 0.8 }, 0.5); // Bleached
+                            applyToMaterials(mat => mat.color.lerp({ r: 1, g: 1, b: 0.8 }, 0.5)); // Bleached
                         }
                         break;
 
@@ -170,19 +197,21 @@ function ThreeTomatoComponent({ data, onLoad }) {
                             child.visible = false;
                         }
                         if (isLeaf) {
-                            child.material.color.set('#6E8B3D'); // Dull Olive Green
+                            applyToMaterials(mat => mat.color.set('#6E8B3D')); // Dull Olive Green
                         }
                         break;
 
                     case CONDITIONS.WATERLOGGING:
                         // Waterlogging: Pale yellow leaves, lower leaves drop, no fruit
                         if (isLeaf) {
-                            child.material.color.set('#F0E68C'); // Khaki (Pale Yellow)
-                            child.material.transparent = true;
-                            child.material.opacity = 0.8;
+                            applyToMaterials(mat => {
+                                mat.color.set('#F0E68C'); // Khaki (Pale Yellow)
+                                mat.transparent = true;
+                                mat.opacity = 0.8;
+                            });
 
                             // Simulate lower leaves dropping (approx 60% loss)
-                            if (child.uuid.charCodeAt(0) % 5 < 3) {
+                            if (child.uuid && child.uuid.charCodeAt(0) % 5 < 3) {
                                 child.visible = false;
                             }
                         }
@@ -190,13 +219,13 @@ function ThreeTomatoComponent({ data, onLoad }) {
                             child.visible = false; // Flowers/Fruit drop
                         }
                         if (isStem) {
-                            child.material.color.set('#5C4033'); // Darker wet stem
+                            applyToMaterials(mat => mat.color.set('#5C4033')); // Darker wet stem
                         }
                         break;
 
                     case CONDITIONS.SLOW_GROWTH:
                         // Pale / Stunted
-                        if (isLeaf) child.material.color.set('#9ACD32'); // YellowGreen
+                        if (isLeaf) applyToMaterials(mat => mat.color.set('#9ACD32')); // YellowGreen
                         break;
 
                     default:

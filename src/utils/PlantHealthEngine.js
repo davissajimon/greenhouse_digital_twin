@@ -68,62 +68,112 @@ const SPECIES_CONFIG = {
 export function evaluatePlantHealth(data) {
     if (!data) return { id: CONDITIONS.NORMAL, label: "Healthy", color: CONDITION_COLORS.NORMAL };
 
-    const t = Number(data.temperature);
-    const rh = Number(data.humidity);
-    const sm = Number(data.soil_moisture);
-    const st = Number(data.soil_temperature);
-    const species = data.species || "tomato"; // Default
+    // Safe parsing to prevent Number(null) -> 0 which triggers false Frost alerts
+    // We check if value is null/undefined specifically. 0 is a valid temp, so we can't just use || fallbacks globally if 0 is possible?
+    // Actually || works for null/undefined/0/false. 0 is falsy.
+    // If temp is 0, we want 0. So we need `value ?? fallback`.
+
+    const t = data.temperature !== null && data.temperature !== undefined ? Number(data.temperature) : 25;
+    const rh = data.humidity !== null && data.humidity !== undefined ? Number(data.humidity) : 60;
+    const sm = data.soil_moisture !== null && data.soil_moisture !== undefined ? Number(data.soil_moisture) : 50;
+    const st = data.soil_temperature !== null && data.soil_temperature !== undefined ? Number(data.soil_temperature) : 20;
+    const species = data.species || "tomato";
 
     // Logic Priority: Fatal -> Critical -> Warning -> Normal
     // Strict non-overlapping ranges where possible, based on user spec for 10 states.
 
     // 1. FROST (Fatal/Severe)
     if (t <= 1 || st <= 1) {
-        return { id: CONDITIONS.FROST, label: "Frost / Freeze", color: CONDITION_COLORS.FROST };
+        return {
+            id: CONDITIONS.FROST,
+            label: "Frost / Freeze",
+            color: CONDITION_COLORS.FROST,
+            tip: "CRITICAL: Activate heaters immediately and cover plants to prevent permanent damage."
+        };
     }
 
     // 2. ROOT HEAT STRESS (Specific deep soil issue)
     if (st >= 35) {
-        return { id: CONDITIONS.ROOT_HEAT_STRESS, label: "Root Heat Stress", color: CONDITION_COLORS.ROOT_HEAT_STRESS };
+        return {
+            id: CONDITIONS.ROOT_HEAT_STRESS,
+            label: "Root Heat Stress",
+            color: CONDITION_COLORS.ROOT_HEAT_STRESS,
+            tip: "Cool soil with water or shade. Apply mulch to base to regulate temperature."
+        };
     }
 
     // 3. HEAT STRESS (Air)
     if (t >= 35) {
-        return { id: CONDITIONS.HEAT_STRESS, label: "Heat Stress", color: CONDITION_COLORS.HEAT_STRESS };
+        return {
+            id: CONDITIONS.HEAT_STRESS,
+            label: "Heat Stress",
+            color: CONDITION_COLORS.HEAT_STRESS,
+            tip: "Increase ventilation and deploy shade cloths. Mist plants to lower leaf temperature."
+        };
     }
 
     // 4. DROUGHT (Soil)
     if (sm < 30) {
-        return { id: CONDITIONS.DROUGHT, label: "Drought", color: CONDITION_COLORS.DROUGHT };
+        return {
+            id: CONDITIONS.DROUGHT,
+            label: "Drought",
+            color: CONDITION_COLORS.DROUGHT,
+            tip: "Water immediately. Check irrigation system for blockages or failures."
+        };
     }
 
     // 5. WATERLOGGING (Soil)
     if (sm > 85) { // User spec said >70-90 is waterlogging range, we pick >70 logic or strictly >85 extreme
         // Using >80 for clear waterlogging
-        return { id: CONDITIONS.WATERLOGGING, label: "Waterlogging", color: CONDITION_COLORS.WATERLOGGING };
+        return {
+            id: CONDITIONS.WATERLOGGING,
+            label: "Waterlogging",
+            color: CONDITION_COLORS.WATERLOGGING,
+            tip: "Stop watering immediately. Inspect drainage and improve soil aeration if possible."
+        };
     }
 
     // 6. HIGH HUMIDITY STRESS (Disease Risk)
     if (rh > 85) {
-        return { id: CONDITIONS.HIGH_HUMIDITY, label: "High Humidity Risk", color: CONDITION_COLORS.HIGH_HUMIDITY };
+        return {
+            id: CONDITIONS.HIGH_HUMIDITY,
+            label: "High Humidity Risk",
+            color: CONDITION_COLORS.HIGH_HUMIDITY,
+            tip: "Increase ventilation to strip moisture. Reduce watering frequency to lower ambient humidity."
+        };
     }
 
     // 7. FLOWER DROP RISK (Dry Air or subtle temp stress)
     // User spec: 30-34C (warm) AND <40% RH
     if (t >= 30 && t < 35 && rh < 40) {
-        return { id: CONDITIONS.FLOWER_DROP, label: "Flower Drop Risk", color: CONDITION_COLORS.FLOWER_DROP };
+        return {
+            id: CONDITIONS.FLOWER_DROP,
+            label: "Flower Drop Risk",
+            color: CONDITION_COLORS.FLOWER_DROP,
+            tip: "Mist environment to increase humidity. Provide temporary shade if temperature is peaking."
+        };
     }
 
     // 8. COLD STRESS (Air)
     // User spec: 8-11C Air
     if (t < 12 && t > 1) {
-        return { id: CONDITIONS.COLD_STRESS, label: "Cold Stress", color: CONDITION_COLORS.COLD_STRESS };
+        return {
+            id: CONDITIONS.COLD_STRESS,
+            label: "Cold Stress",
+            color: CONDITION_COLORS.COLD_STRESS,
+            tip: "Close vents and reduce airflow. Activate auxiliary heating if available."
+        };
     }
 
     // 9. ROOT COLD STRESS
     // User spec: 18-22 Air, 10-14 Soil. We focus on the Soil Temp being the driver here.
     if (st < 15 && st > 1) {
-        return { id: CONDITIONS.ROOT_COLD_STRESS, label: "Root Cold Stress", color: CONDITION_COLORS.ROOT_COLD_STRESS };
+        return {
+            id: CONDITIONS.ROOT_COLD_STRESS,
+            label: "Root Cold Stress",
+            color: CONDITION_COLORS.ROOT_COLD_STRESS,
+            tip: "Avoid irrigation with cold water. Insulate pots or ground to retain heat."
+        };
     }
 
     // Check against species verification for "Optimal" vs "Sub-optimal" that isn't a crisis
@@ -136,5 +186,10 @@ export function evaluatePlantHealth(data) {
         // Or we could trigger 'Flower Drop' if it matches that specific heuristic
     }
 
-    return { id: CONDITIONS.NORMAL, label: "Optimal / Normal", color: CONDITION_COLORS.NORMAL };
+    return {
+        id: CONDITIONS.NORMAL,
+        label: "Optimal / Normal",
+        color: CONDITION_COLORS.NORMAL,
+        tip: "System optimal. Continue standard monitoring protocol."
+    };
 }
