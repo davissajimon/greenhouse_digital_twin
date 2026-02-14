@@ -1,0 +1,356 @@
+/* ═══════════════════════════════════════════
+   GeoSection.css — "Where Do You Live?" Globe Slide
+   ═══════════════════════════════════════════ */
+
+.geo-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 50%, #0a1628 0%, #060e1a 60%, #020408 100%);
+    overflow: hidden;
+    font-family: var(--font-hero, 'Inter', sans-serif);
+    color: #fff;
+}
+
+/* ═══ Background glow ═══ */
+.geo-bg-gradient {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 70% 40%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 30% 60%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ═══ Left Content Panel ═══ */
+.geo-content {
+    position: relative;
+    z-index: 10;
+    width: 40%;
+    max-width: 480px;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.geo-header {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.geo-badge {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.72rem;
+    color: rgba(56, 189, 248, 0.9);
+    letter-spacing: 0.22em;
+    border-left: 2px solid rgba(56, 189, 248, 0.5);
+    padding-left: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.geo-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0;
+    background: linear-gradient(to bottom, #ffffff 20%, #8899aa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.02em;
+}
+
+.geo-subtitle {
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 380px;
+}
+
+/* ═══ Weather Card ═══ */
+.geo-weather-card {
+    background: rgba(8, 12, 28, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: geoCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.geo-weather-card.loading-card,
+.geo-weather-card.error-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.geo-weather-card.error-card {
+    border-color: rgba(255, 100, 100, 0.2);
+    color: #ff6b6b;
+}
+
+@keyframes geoCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.geo-weather-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.geo-weather-icon {
+    width: 54px;
+    height: 54px;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+}
+
+.geo-weather-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.geo-city {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.geo-city small {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-left: 6px;
+    font-weight: 400;
+}
+
+.geo-temp {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: var(--font-mono, 'Courier New', monospace);
+    color: #38bdf8;
+}
+
+.geo-weather-details {
+    display: flex;
+    gap: 16px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.geo-impact {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border-left: 3px solid #38bdf8;
+    line-height: 1.5;
+}
+
+.geo-coords {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-size: 0.78rem;
+    color: rgba(56, 189, 248, 0.7);
+}
+
+/* ═══ CTA Button ═══ */
+.geo-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 12px;
+    color: #38bdf8;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.geo-cta:hover {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.15);
+    transform: translateY(-2px);
+}
+
+.geo-cta svg {
+    animation: ctaBounce 2s ease-in-out infinite;
+}
+
+@keyframes ctaBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(4px);
+    }
+}
+
+/* ═══ Hint ═══ */
+.geo-hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    animation: hintGlow 3s ease-in-out infinite;
+    width: fit-content;
+}
+
+.geo-hint-icon {
+    font-size: 1.2rem;
+}
+
+@keyframes hintGlow {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ═══ Globe Area (Right Side) ═══ */
+.geo-globe-area {
+    position: relative;
+    z-index: 5;
+    width: 55%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.geo-globe-area .globe-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+.geo-globe-area .globe-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.geo-globe-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+}
+
+.geo-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #38bdf8;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 1024px) {
+    .geo-section {
+        flex-direction: column;
+    }
+
+    .geo-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 40px 30px 20px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .geo-title {
+        font-size: 2.2rem;
+    }
+
+    .geo-subtitle {
+        max-width: 100%;
+    }
+
+    .geo-globe-area {
+        width: 100%;
+        height: 50vh;
+    }
+
+    .geo-hint {
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .geo-content {
+        padding: 30px 20px 10px;
+        gap: 16px;
+    }
+
+    .geo-title {
+        font-size: 1.8rem;
+    }
+
+    .geo-weather-details {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .geo-globe-area {
+        height: 45vh;
+    }
+}

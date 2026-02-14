@@ -21,7 +21,7 @@ export default function MainNavbar({ visible = true }) {
         {/* Center Navigation Links */}
         <div className="navbar-links">
           <button className={`nav-link ${isActive('/')}`} onClick={() => navigate("/")}>Home</button>
-          <button className={`nav-link ${isActive('/Sim')}`} onClick={() => navigate("/Sim")}>Simulator</button>
+          <button className={`nav-link ${isActive('/Sim')}`} onClick={() => {return (navigate("/Sim"))}}>Simulator</button>
           {/* <button className={`nav-link ${isActive('/scalability')}`} onClick={() => navigate("/scalability")}>Scalability</button> */}
         </div>
       </div>

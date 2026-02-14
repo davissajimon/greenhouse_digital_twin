@@ -1,77 +1,164 @@
-import React from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import { NatureLoader } from "./components/NatureLoader";
 
 // Lazy load all major components for better code splitting
 const Home = React.lazy(() => import("./pages/Home"));
+const GeoSection = React.lazy(() => import("./pages/GeoSection"));
 const Simulator = React.lazy(() => import("./pages/Simulator"));
-const MainNavbar = React.lazy(() => import("./components/Navbar"));
 const Footer = React.lazy(() => import("./components/Footer"));
-const ScalabilityTest = React.lazy(() => import("./pages/ScalabilityTest"));
-
-// Reusable loading fallback component
-const LoadingFallback = ({ message }) => (
-  <NatureLoader message={message} />
-);
 
 function App() {
+  // Lifted geo weather state — shared between GeoSection and Simulator
+  const [geoWeather, setGeoWeather] = useState(null);
+
+  /* ═══ GLOBAL LOADING GATE ═══
+     Tracks which sections have finished loading their heavy assets.
+     The NatureLoader stays visible until ALL sections report ready. */
+  const [readySections, setReadySections] = useState({
+    home: false,
+    geo: false,
+    simulator: false,
+  });
+
+  const markReady = useCallback((section) => {
+    setReadySections(prev => {
+      if (prev[section]) return prev; // already marked
+      return { ...prev, [section]: true };
+    });
+  }, []);
+
+  const allReady = useMemo(
+    () => readySections.home && readySections.geo && readySections.simulator,
+    [readySections]
+  );
+
+  /* Delay the final reveal by 0.5s for smoother experience */
+  const [appReady, setAppReady] = React.useState(false);
+  React.useEffect(() => {
+    if (allReady) {
+      const t = setTimeout(() => setAppReady(true), 500);
+      return () => clearTimeout(t);
+    }
+  }, [allReady]);
+
+  const onHomeReady = useCallback(() => markReady("home"), [markReady]);
+  const onGeoReady = useCallback(() => markReady("geo"), [markReady]);
+  const onSimulatorReady = useCallback(() => markReady("simulator"), [markReady]);
+
   return (
     <DarkModeProvider>
       <div className="cinematic-noise"></div>
-      <Router>
-        <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
-          <MainNavbar />
-        </React.Suspense>
 
-        <Routes>
-          <Route path="/">
-            <Route
-              index
-              element={
-                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
-                  <Home />
-                </React.Suspense>
-              }
+      {/* ═══ GLOBAL LOADER — covers everything until all sections ready ═══ */}
+      {!appReady && (
+        <div className="global-loader-wrapper">
+          <NatureLoader message="Preparing your greenhouse…" />
+        </div>
+      )}
+
+      <div
+        className="scroll-root"
+        id="scroll-root"
+        style={{ opacity: appReady ? 1 : 0, transition: "opacity 0.6s ease" }}
+      >
+        {/* ═══ SECTION 1: HOME / HERO ═══ */}
+        <section className="scroll-section" id="section-home">
+          <React.Suspense fallback={null}>
+            <Home onReady={onHomeReady} startAnimation={appReady} />
+          </React.Suspense>
+        </section>
+
+        {/* ═══ SECTION 2: GEO SIMULATION ═══ */}
+        <section className="scroll-section" id="section-geo">
+          <React.Suspense fallback={null}>
+            <GeoSection
+              geoWeather={geoWeather}
+              onWeatherUpdate={setGeoWeather}
+              onReady={onGeoReady}
             />
-            <Route
-              path="Sim"
-              element={
-                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
-                  <Simulator />
-                </React.Suspense>
-              }
-            />
-            {/* <Route
-              path="scalability"
-              element={
-                <React.Suspense fallback={<LoadingFallback message="Loading..." />}>
-                  <ScalabilityTest />
-                </React.Suspense>
-              }
-            /> */}
-          </Route>
-        </Routes>
-        <ConditionalFooter />
-      </Router>
+          </React.Suspense>
+        </section>
+
+        {/* ═══ SECTION DIVIDER ═══ */}
+        <div className="section-divider">
+          <div className="divider-glow"></div>
+          <div className="divider-label">
+            <span className="divider-icon">🔬</span>
+            <span>SIMULATION LAB</span>
+          </div>
+          <div className="divider-glow"></div>
+        </div>
+
+        {/* ═══ SECTION 3: SIMULATOR ═══ */}
+        <section className="scroll-section" id="section-simulator">
+          <React.Suspense fallback={null}>
+            <Simulator geoWeather={geoWeather} onReady={onSimulatorReady} />
+          </React.Suspense>
+        </section>
+
+        {/* ═══ FOOTER ═══ */}
+        <React.Suspense fallback={null}>
+          <Footer />
+        </React.Suspense>
+      </div>
+
+      {/* ═══ SCROLL NAV DOTS ═══ */}
+      {appReady && <ScrollNav />}
     </DarkModeProvider>
   );
 }
 
-const ConditionalFooter = () => {
-  // Simple check, or use useLocation
-  // To use useLocation, we need to be inside the Router. We are inside Router in App return.
-  // We can't use useLocation() directly in App() because App() *creates* the Router.
-  // But we can use a child component.
-  return <FooterWrapper />;
-};
+function ScrollNav() {
+  const [activeSection, setActiveSection] = React.useState(0);
+  const sections = [
+    { id: "section-home", label: "Home" },
+    { id: "section-geo", label: "Location" },
+    { id: "section-simulator", label: "Simulator" },
+  ];
 
-const FooterWrapper = () => {
-  const location = useLocation();
-  // Hide footer on Home ('/') and Scalability ('/scalability') as per "Focused" requests
-  if (location.pathname === '/' || location.pathname === '/scalability' || location.pathname === '/Sim') return null;
-  return <Footer />;
+  React.useEffect(() => {
+    const root = document.getElementById("scroll-root");
+    if (!root) return;
+
+    const handleScroll = () => {
+      const scrollTop = root.scrollTop;
+      const vh = window.innerHeight;
+      // Determine active section based on scroll position
+      if (scrollTop < vh * 0.5) {
+        setActiveSection(0);
+      } else if (scrollTop < vh * 1.5) {
+        setActiveSection(1);
+      } else {
+        setActiveSection(2);
+      }
+    };
+
+    root.addEventListener("scroll", handleScroll, { passive: true });
+    return () => root.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div className="scroll-nav">
+      {sections.map((s, i) => (
+        <button
+          key={s.id}
+          className={`scroll-nav-dot ${i === activeSection ? "active" : ""}`}
+          onClick={() => scrollTo(s.id)}
+          title={s.label}
+          aria-label={`Go to ${s.label}`}
+        >
+          <span className="scroll-nav-tooltip">{s.label}</span>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export default App;

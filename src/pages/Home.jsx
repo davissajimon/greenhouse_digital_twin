@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useRef, useMemo } from "react";
+import React, { useState, useEffect, Suspense, useRef, useMemo, useCallback } from "react";
 import "./Home.css";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Html, ContactShadows, useCursor, OrbitControls, Billboard, useGLTF, useTexture } from "@react-three/drei";
@@ -10,6 +10,7 @@ import { API_BASE_URL } from "../config";
 import { applyEdgeCorrections } from "../utils/SensorCorrelations";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
 import { useFetchSensorData } from "../hooks/useFetchSensorData";
+import ScrambleText from "../components/ScrambleText";
 
 
 // --- GREENHOUSE ENVIRONMENT ---
@@ -272,11 +273,10 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorId, 
 
 // --- UI COMPONENTS ---
 
-import { useNavigate } from "react-router-dom";
+
 
 function Sidebar({ visible, plant, onClose, apiState, currentSensorId, onUpdateSensorId }) {
   const [sensorIdInput, setSensorIdInput] = useState(currentSensorId || "");
-  const navigate = useNavigate();
 
   useEffect(() => {
     // When plant changes or currentSensorId updates from outside, update local input
@@ -331,7 +331,7 @@ function Sidebar({ visible, plant, onClose, apiState, currentSensorId, onUpdateS
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             <button style={{
               background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#fff', width: '100%', padding: '12px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s', backdropFilter: 'blur(4px)'
-            }} onClick={() => navigate("/Sim")}
+            }} onClick={() => { const geoSection = document.getElementById('section-geo'); if (geoSection) geoSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
               onMouseOver={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.2)'; }}
               onMouseOut={(e) => { e.target.style.background = 'rgba(255, 255, 255, 0.1)'; }}
             >
@@ -414,7 +414,14 @@ function Floor() {
   );
 }
 
-export default function Home() {
+export default function Home({ onReady, startAnimation = true }) {
+  const readyFired = useRef(false);
+  const fireReady = useCallback(() => {
+    if (!readyFired.current && onReady) {
+      readyFired.current = true;
+      onReady();
+    }
+  }, [onReady]);
   const [activeIndex, setActiveIndex] = useState(1);
   const userInteracting = useRef(false);
   const [viewMode, setViewMode] = useState('overview');
@@ -480,13 +487,14 @@ export default function Home() {
   };
 
   return (
-    <div className="app-layout" style={{ height: 'calc(100vh - 64px)' }}>
+    <div className="app-layout" style={{ height: '100vh' }}>
       <Canvas
         className="webgl-canvas"
         shadows="soft"
         dpr={[1, 1.5]} // Clamp pixel ratio for performance
         camera={{ position: [0, 4, 12], fov: 45, near: 0.1, far: 50 }} // Tight frustum with Initial Backward Position
         gl={{ powerPreference: "high-performance", antialias: false }} // Optimize context
+        onCreated={() => { setTimeout(fireReady, 500); }}
       >
         <color attach="background" args={['#101827']} />
 
@@ -555,18 +563,24 @@ export default function Home() {
 
       <div className={`hero-overlay cinematic-fade-enter ${viewMode === 'focus' ? 'hidden' : ''}`}>
         <div className="hero-content">
-          <div className="hero-badge">AUTOMATION REIMAGINED</div>
-          <h1 className="text-hero">DIGITAL TWIN<br />GREENHOUSE</h1>
+          <div className="hero-badge">
+            <ScrambleText text="AUTOMATION REIMAGINED" delay={800} start={startAnimation} />
+          </div>
+          <h1 className="text-hero">
+            DIGITAL TWIN<br />GREENHOUSE
+          </h1>
           <p className="text-sub">
-            A living ecosystem simulated in real-time.
+            <ScrambleText text="A living ecosystem simulated in real-time." delay={1600} start={startAnimation} scrambleSpeed={15} />
             <br />
-            Experience the future of sustainable agriculture.
+            <ScrambleText text="Experience the future of sustainable agriculture." delay={2000} start={startAnimation} scrambleSpeed={15} />
           </p>
         </div>
 
         <div className="hero-controls">
           <div className="scroll-indicator">
-            <span className="scroll-text">INTERACTIVE VIEW</span>
+            <span className="scroll-text">
+              <ScrambleText text="SCROLL TO EXPLORE" delay={2500} start={startAnimation} />
+            </span>
             <div className="scroll-line"></div>
           </div>
         </div>

@@ -29,7 +29,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  /* App handles scroll */
+  /* Scroll root handles scrolling */
   height: 100vh;
   width: 100vw;
 }
