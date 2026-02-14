@@ -226,19 +226,17 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 999px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.5);
     animation: hintGlow 3s ease-in-out infinite;
     width: fit-content;
 }
 
-.geo-hint-icon {
-    font-size: 1.2rem;
-}
+
 
 @keyframes hintGlow {
 

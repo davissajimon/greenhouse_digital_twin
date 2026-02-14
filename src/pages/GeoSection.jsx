@@ -112,7 +112,6 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
 
                 {!selectedCoords && !loading && (
                     <div className="geo-hint">
-                        <span className="geo-hint-icon">👆</span>
                         <span>Click anywhere on the globe to begin</span>
                     </div>
                 )}

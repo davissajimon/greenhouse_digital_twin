@@ -7,6 +7,7 @@ import { NatureLoader } from "../components/NatureLoader";
 import { ThreeTomato } from "../components/ThreeTomato";
 import { ThreeChilli } from "../components/ThreeChilli";
 import { ThreePea } from "../components/ThreePea";
+import { PlantMarquee } from "../components/PlantMarquee";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
 import { useSimulatorStore } from "../store/useSimulatorStore";
 
@@ -61,7 +62,7 @@ function getGrowRecommendation(plantType, healthStatus, geoWeather) {
 export default function Simulator({ geoWeather, onReady }) {
   // ── Zustand Store ──
   const {
-    plant, setPlant,
+    plant,
     controls, updateControl,
     geoWeather: storeGeoWeather, setGeoWeather,
     controlsVisible, setControlsVisible,
@@ -173,6 +174,9 @@ export default function Simulator({ geoWeather, onReady }) {
         )}
       </div>
 
+      {/* ═══ PLANT MARQUEE (Vertical Selection) ═══ */}
+      {!isLoading && !hasError && introFinished && <PlantMarquee />}
+
       {/* ═══ "CLICK MODEL" HINT (before panel is opened) ═══ */}
       {!controlsVisible && !isLoading && introFinished && (
         <div className="click-hint">
@@ -206,13 +210,8 @@ export default function Simulator({ geoWeather, onReady }) {
           <button className="controls-close" onClick={() => setControlsVisible(false)} aria-label="Close controls">✕</button>
         </div>
 
-        <div className="sim-select-group">
-          <label>Selected Specimen</label>
-          <select value={plant} onChange={(e) => setPlant(e.target.value)} className="sim-dropdown">
-            <option value="tomato">Tomato (Solanum lycopersicum)</option>
-            <option value="chilli">Chilli (Capsicum annuum)</option>
-            <option value="okra">Okra (Abelmoschus esculentus)</option>
-          </select>
+        <div className="sim-select-group" style={{ display: 'none' }}>
+          {/* Legacy Select - Removed in favor of Marquee */}
         </div>
 
         <div className="sim-status" style={{ borderLeftColor: healthStatus.color }}>
