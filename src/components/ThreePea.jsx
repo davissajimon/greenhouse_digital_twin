@@ -1,13 +1,16 @@
 import React, { useEffect, useMemo } from 'react';
-import { useGLTF, Center } from '@react-three/drei';
+import { useGLTF, Center, Detailed } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
+// Enable Draco compression support
+const draacoUrl = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
+
 // Preload
-useGLTF.preload('/okra2.glb');
+useGLTF.preload('/okra2.glb', draacoUrl);
 
 export function ThreePea({ data, onLoad }) {
     // Currently using healthy_tomato as placeholder per previous context
-    const { scene } = useGLTF('/okra2.glb');
+    const { scene } = useGLTF('/okra2.glb', draacoUrl);
     const clone = useMemo(() => scene.clone(true), [scene]);
 
     useEffect(() => {

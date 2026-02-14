@@ -8,18 +8,18 @@ import { ThreeTomato } from "../components/ThreeTomato";
 import { ThreeChilli } from "../components/ThreeChilli";
 import { ThreePea } from "../components/ThreePea";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
-import { applyEdgeCorrections } from "../utils/SensorCorrelations";
-import { weatherToSimulatorState } from "../modules/simulator/geoSimulatorBridge";
+import { useSimulatorStore } from "../store/useSimulatorStore";
 
 /* ── Camera Intro ── */
 function CameraIntro({ onFinish }) {
-  const { camera } = useThree();
+  const { camera, invalidate } = useThree();
   const target = useMemo(() => new Vector3(), []);
-  useEffect(() => { camera.position.set(10, 3, 10); camera.lookAt(0, -0.5, 0); }, [camera]);
+  useEffect(() => { camera.position.set(10, 3, 10); camera.lookAt(0, -0.5, 0); invalidate(); }, [camera, invalidate]);
   useFrame((state) => {
     state.camera.position.lerp(target.set(0, 0.4, 5.5), 0.04);
     state.camera.lookAt(0, -0.2, 0);
     if (state.camera.position.distanceTo(target) < 0.1) onFinish();
+    invalidate(); // Keep rendering during animation
   });
   return null;
 }
@@ -59,17 +59,22 @@ function getGrowRecommendation(plantType, healthStatus, geoWeather) {
    MAIN SIMULATOR
    ══════════════════════════════════════════ */
 export default function Simulator({ geoWeather, onReady }) {
-  const [plant, setPlant] = useState("tomato");
+  // ── Zustand Store ──
+  const {
+    plant, setPlant,
+    controls, updateControl,
+    geoWeather: storeGeoWeather, setGeoWeather,
+    controlsVisible, setControlsVisible,
+    plantInfoOpen, setPlantInfoOpen,
+    correlationMsg,
+    showConditions, setShowConditions,
+    applyCondition
+  } = useSimulatorStore();
+
+  // ── Local UI State ──
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [introFinished, setIntroFinished] = useState(false);
-  const [showConditions, setShowConditions] = useState(false);
-
-  /* Controls visibility – hidden until model click */
-  const [controlsVisible, setControlsVisible] = useState(false);
-
-  /* Plant info modal */
-  const [plantInfoOpen, setPlantInfoOpen] = useState(false);
 
   const readyFired = useRef(false);
   const fireReady = useCallback(() => {
@@ -83,64 +88,21 @@ export default function Simulator({ geoWeather, onReady }) {
     return () => clearTimeout(t);
   }, [isLoading, fireReady]);
 
-  /* Simulator controls */
-  const [controls, setControls] = useState({ temperature: 25, humidity: 50, soil_moisture: 45, soil_temperature: 20, light: 500 });
-  const [correlationMsg, setCorrelationMsg] = useState(null);
-  const msgTimer = useRef(null);
-
-  const showMsg = useCallback((msg, dur = 3000) => {
-    setCorrelationMsg(msg);
-    if (msgTimer.current) clearTimeout(msgTimer.current);
-    msgTimer.current = setTimeout(() => { setCorrelationMsg(null); msgTimer.current = null; }, dur);
-  }, []);
-
-  const CONDITION_PRESETS = {
-    NORMAL: { temperature: 25, humidity: 60, soil_moisture: 50, soil_temperature: 20, light: 1000 },
-    HEAT_STRESS: { temperature: 40, humidity: 40, soil_moisture: 40, soil_temperature: 25, light: 1500 },
-    COLD_STRESS: { temperature: 8, humidity: 60, soil_moisture: 50, soil_temperature: 10, light: 800 },
-    FROST: { temperature: -2, humidity: 40, soil_moisture: 30, soil_temperature: 0, light: 500 },
-    HIGH_HUMIDITY: { temperature: 25, humidity: 95, soil_moisture: 60, soil_temperature: 20, light: 800 },
-    DROUGHT: { temperature: 30, humidity: 30, soil_moisture: 10, soil_temperature: 25, light: 1500 },
-    ROOT_COLD_STRESS: { temperature: 18, humidity: 60, soil_moisture: 50, soil_temperature: 10, light: 800 },
-    ROOT_HEAT_STRESS: { temperature: 30, humidity: 50, soil_moisture: 40, soil_temperature: 40, light: 1200 },
-    FLOWER_DROP: { temperature: 32, humidity: 30, soil_moisture: 40, soil_temperature: 25, light: 1200 },
-    WATERLOGGING: { temperature: 25, humidity: 80, soil_moisture: 95, soil_temperature: 20, light: 800 },
-  };
-
-  const applyCondition = (key) => {
-    const p = CONDITION_PRESETS[key];
-    if (p) { setControls(prev => ({ ...prev, ...p })); showMsg(`Applying ${key.replace(/_/g, ' ')} …`, 2000); }
-  };
-
-  const updateControl = (key, value) => {
-    const next = { ...controls, [key]: Number(value) };
-    const { newState, adjusted, reasons } = applyEdgeCorrections(next, key);
-    setControls(newState);
-    if (adjusted) showMsg(reasons[0] || "Adjusting for realism…");
-  };
-
-  /* Apply geo weather when it arrives or changes */
-  const prevGeoRef = useRef(null);
+  /* Sync Geo Weather Prop to Store */
   useEffect(() => {
-    if (geoWeather && geoWeather !== prevGeoRef.current) {
-      prevGeoRef.current = geoWeather;
-      const simState = weatherToSimulatorState(geoWeather);
-      if (simState) {
-        queueMicrotask(() => {
-          setControls(prev => ({ ...prev, ...simState }));
-          showMsg(`🌍 Applied conditions from ${geoWeather.cityName || 'selected location'}`);
-        });
-      }
+    if (geoWeather) {
+      setGeoWeather(geoWeather);
     }
-  }, [geoWeather, showMsg]);
+  }, [geoWeather, setGeoWeather]);
 
   /* Click the model → show controls */
   const handlePlantClick = useCallback(() => {
     setControlsVisible(true);
-  }, []);
+  }, [setControlsVisible]);
 
   const healthStatus = useMemo(() => evaluatePlantHealth({ ...controls, species: plant }), [controls, plant]);
-  const recommendation = useMemo(() => getGrowRecommendation(plant, healthStatus, geoWeather), [plant, healthStatus, geoWeather]);
+  // Use storeGeoWeather for consistency, or prop. Store is better as it has the latest synced version.
+  const recommendation = useMemo(() => getGrowRecommendation(plant, healthStatus, storeGeoWeather), [plant, healthStatus, storeGeoWeather]);
 
   const lighting = useMemo(() => {
     const lux = controls.light, isNight = lux < 200;
@@ -167,6 +129,7 @@ export default function Simulator({ geoWeather, onReady }) {
       <div className="sim-viewport-wrapper">
         {hasError ? <ErrorFallback /> : (
           <Canvas
+            frameloop="demand"
             camera={{ position: [0, 0.4, 5.5], fov: 50 }}
             shadows
             style={{ width: '100%', height: '100%', background: 'transparent' }}
@@ -213,7 +176,6 @@ export default function Simulator({ geoWeather, onReady }) {
       {/* ═══ "CLICK MODEL" HINT (before panel is opened) ═══ */}
       {!controlsVisible && !isLoading && introFinished && (
         <div className="click-hint">
-          <span className="click-hint-icon">👆</span>
           <span>Click the plant to open controls</span>
         </div>
       )}
@@ -227,9 +189,9 @@ export default function Simulator({ geoWeather, onReady }) {
       )}
 
       {/* ═══ GEO LOCATION TAG (top-left — shows current location) ═══ */}
-      {geoWeather && !isLoading && introFinished && (
+      {storeGeoWeather && !isLoading && introFinished && (
         <div className="geo-location-tag" onClick={scrollToGeo}>
-          <span>📍 {geoWeather.cityName} • {geoWeather.temperature}°C</span>
+          <span>📍 {storeGeoWeather.cityName} • {storeGeoWeather.temperature}°C</span>
           <span className="geo-tag-change">Change ↑</span>
         </div>
       )}
@@ -239,7 +201,7 @@ export default function Simulator({ geoWeather, onReady }) {
         <div className="controls-header">
           <h2>
             Simulation Lab
-            {geoWeather && <span className="geo-source-tag">📍 {geoWeather.cityName}</span>}
+            {storeGeoWeather && <span className="geo-source-tag">📍 {storeGeoWeather.cityName}</span>}
           </h2>
           <button className="controls-close" onClick={() => setControlsVisible(false)} aria-label="Close controls">✕</button>
         </div>
@@ -314,14 +276,14 @@ export default function Simulator({ geoWeather, onReady }) {
                 {healthStatus.tip && <span className="plant-info-status-tip">{healthStatus.tip}</span>}
               </div>
             </div>
-            {geoWeather && (
+            {storeGeoWeather && (
               <div className="plant-info-weather">
-                <h4>📍 {geoWeather.cityName} {geoWeather.country}</h4>
+                <h4>📍 {storeGeoWeather.cityName} {storeGeoWeather.country}</h4>
                 <div className="plant-info-weather-grid">
-                  <span>🌡️ {geoWeather.temperature}°C</span>
-                  <span>💧 {geoWeather.humidity}%</span>
-                  <span>☁️ {geoWeather.condition}</span>
-                  <span>💨 {geoWeather.windSpeed} m/s</span>
+                  <span>🌡️ {storeGeoWeather.temperature}°C</span>
+                  <span>💧 {storeGeoWeather.humidity}%</span>
+                  <span>☁️ {storeGeoWeather.condition}</span>
+                  <span>💨 {storeGeoWeather.windSpeed} m/s</span>
                 </div>
               </div>
             )}
@@ -371,3 +333,4 @@ function ConditionItem({ color, label, desc, onClick, isActive }) {
     </div>
   );
 }
+

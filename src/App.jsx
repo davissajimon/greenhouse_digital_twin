@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import "./App.css";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import { NatureLoader } from "./components/NatureLoader";
+import { PlantProgressBar } from "./components/PlantProgressBar";
 
 // Lazy load all major components for better code splitting
 const Home = React.lazy(() => import("./pages/Home"));
@@ -104,60 +105,9 @@ function App() {
         </React.Suspense>
       </div>
 
-      {/* ═══ SCROLL NAV DOTS ═══ */}
-      {appReady && <ScrollNav />}
+      {/* ═══ SCROLL PROGRESS PLANT ═══ */}
+      {appReady && <PlantProgressBar scrollContainerId="scroll-root" />}
     </DarkModeProvider>
-  );
-}
-
-function ScrollNav() {
-  const [activeSection, setActiveSection] = React.useState(0);
-  const sections = [
-    { id: "section-home", label: "Home" },
-    { id: "section-geo", label: "Location" },
-    { id: "section-simulator", label: "Simulator" },
-  ];
-
-  React.useEffect(() => {
-    const root = document.getElementById("scroll-root");
-    if (!root) return;
-
-    const handleScroll = () => {
-      const scrollTop = root.scrollTop;
-      const vh = window.innerHeight;
-      // Determine active section based on scroll position
-      if (scrollTop < vh * 0.5) {
-        setActiveSection(0);
-      } else if (scrollTop < vh * 1.5) {
-        setActiveSection(1);
-      } else {
-        setActiveSection(2);
-      }
-    };
-
-    root.addEventListener("scroll", handleScroll, { passive: true });
-    return () => root.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  return (
-    <div className="scroll-nav">
-      {sections.map((s, i) => (
-        <button
-          key={s.id}
-          className={`scroll-nav-dot ${i === activeSection ? "active" : ""}`}
-          onClick={() => scrollTo(s.id)}
-          title={s.label}
-          aria-label={`Go to ${s.label}`}
-        >
-          <span className="scroll-nav-tooltip">{s.label}</span>
-        </button>
-      ))}
-    </div>
   );
 }
 

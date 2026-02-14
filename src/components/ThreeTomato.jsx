@@ -1,12 +1,18 @@
 import React, { useEffect, useMemo } from 'react';
-import { useGLTF, Center } from '@react-three/drei';
+import { useGLTF, Center, Detailed } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
-// Preload the model for better performance
-useGLTF.preload('/Untitled.glb');
+// Enable Draco compression support
+// Point to a CDN or local copy of the draco loader
+const draacoUrl = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
+
+// Preload with Draco support
+useGLTF.preload('/Untitled.glb', draacoUrl);
 
 function ThreeTomatoComponent({ data, onLoad }) {
-    const { scene } = useGLTF('/Untitled.glb');
+    const { scene } = useGLTF('/Untitled.glb', draacoUrl);
+    // ... rest of the component
+
     const clone = useMemo(() => scene.clone(true), [scene]);
 
     // Trigger onLoad when component mounts (and model is effectively ready)

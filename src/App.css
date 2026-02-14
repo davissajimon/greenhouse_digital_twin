@@ -20,7 +20,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
   background: #000;
 }
 

@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo } from "react";
-import { useGLTF, Center } from "@react-three/drei";
+import { useGLTF, Center, Detailed } from "@react-three/drei";
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
+// Enable Draco compression support
+const draacoUrl = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
+
 // Preload for better performance
-useGLTF.preload("/chilli_v2.glb");
+useGLTF.preload("/chilli_v2.glb", draacoUrl);
 
 export function ThreeChilli({ data, onLoad }) {
-  const { scene } = useGLTF("/chilli_v2.glb");
+  const { scene } = useGLTF("/chilli_v2.glb", draacoUrl);
   const clone = useMemo(() => scene.clone(true), [scene]);
 
   useEffect(() => {
