@@ -178,8 +178,9 @@ export default function Simulator({ geoWeather, onReady }) {
       {!isLoading && !hasError && introFinished && <PlantMarquee />}
 
       {/* ═══ "CLICK MODEL" HINT (before panel is opened) ═══ */}
-      {!controlsVisible && !isLoading && introFinished && (
-        <div className="click-hint">
+      {/* ═══ "CLICK MODEL" HINT (before panel is opened) ═══ */}
+      {!isLoading && introFinished && (
+        <div className={`click-hint ${controlsVisible ? 'hidden' : ''}`}>
           <span>Click the plant to open controls</span>
         </div>
       )}

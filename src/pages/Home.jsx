@@ -287,7 +287,7 @@ function Sidebar({ visible, plant, onClose, apiState, currentSensorId, onUpdateS
   }, [plant, currentSensorId]);
 
   return (
-    <div className={`sidebar-panel glass-panel ${visible ? 'visible' : ''}`}>
+    <div className={`sidebar-panel ${visible ? 'visible' : ''}`}>
       <button className="close-btn" onClick={onClose}>&times;</button>
       {plant && (
         <>
@@ -505,13 +505,7 @@ export default function Home({ onReady, startAnimation = true }) {
         <directionalLight
           position={[5, 8, 5]}
           intensity={2}
-          castShadow
-          shadow-mapSize={[1024, 1024]} // Optimize shadow map
-          shadow-camera-far={20}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
+        /* Shadows disabled for performance - using ContactShadows instead */
         />
         <Environment preset="city" />
 

@@ -60,6 +60,7 @@
   position: absolute;
   bottom: 100px;
   left: 50%;
+  /* Ensure it's centered and stays there */
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
@@ -78,6 +79,21 @@
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 1px;
+  /* Transition for REAPPEARANCE - Opacity only */
+  /* Fade takes 1.5s, starts after 2s delay */
+  transition: opacity 1.5s ease;
+  transition-delay: 2s;
+}
+
+.click-hint.hidden {
+  opacity: 0;
+  /* Keep position static, only fade out */
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: none;
+  /* Transition for DISAPPEARANCE */
+  transition: opacity 0.3s ease;
+  transition-delay: 0s;
 }
 
 .click-hint-icon {
@@ -130,29 +146,59 @@
 /* ══════════════ CONTROLS PANEL (slide-in) ══════════════ */
 .sim-controls-overlay {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 360px;
-  max-width: 92vw;
-  height: 100vh;
-  background: var(--glass-bg);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-left: 1px solid var(--glass-border);
+  /* Increased Floating Margins */
+  top: 60px;
+  right: 50px;
+  /* Moved left (away from edge) */
+  bottom: 60px;
+  width: 380px;
+  /* Slightly wider */
+  max-width: 90vw;
+  height: calc(100vh - 120px);
+  /* Tighter float */
+  border-radius: 24px;
+  /* More rounded */
+
+  /* Fluid Glass Material — with dark tint for legibility */
+  background:
+    radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 100%),
+    /* Added tint for readability: */
+    linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3));
+  background-size: 200% 200%;
+  animation: fluidGlass 8s ease infinite alternate;
+
+  /* Strong Blur */
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+
+  /* Glass Border */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  /* Inner border */
+
   padding: 24px;
   overflow-y: auto;
+  /* Hide scrollbar for cleaner floating look */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   z-index: 1100;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* Hidden by default — slides from right */
-  transform: translateX(110%);
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.4);
+
+  /* Hidden by default — slides from right with 3D feel */
+  transform: translateX(120%) scale(0.95);
+  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.5s ease;
+  opacity: 0;
 }
 
 .sim-controls-overlay.visible {
-  transform: translateX(0);
+  transform: translateX(0) scale(1);
+  opacity: 1;
 }
 
 .sim-controls-overlay::-webkit-scrollbar {
@@ -1124,5 +1170,15 @@ input[type=range]:hover::-webkit-slider-thumb {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fluidGlass {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
   }
 }

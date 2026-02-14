@@ -1,25 +1,31 @@
 import React, { useState, useEffect } from "react";
 
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+
 const ScrambleText = ({
     text,
     delay = 0,
     className = "",
-    scrambleSpeed = 30,
+    scrambleSpeed = 20,
     as = "span",
     start = true
 }) => {
     const Tag = as;
-    const [displayedText, setDisplayedText] = useState(text.replace(/[^\s]/g, "0")); // Start with placeholder 0s
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    // Start with random characters instead of 0s
+    const [displayedText, setDisplayedText] = useState(() =>
+        text.split("").map(char => (char === " " || char === "\n") ? char : CHARS[Math.floor(Math.random() * CHARS.length)]).join("")
+    );
 
     useEffect(() => {
         if (!start) return;
 
         let interval;
-        let iteration = 0;
+        let startTimeout;
 
         // Initial delay
-        const startTimeout = setTimeout(() => {
+        startTimeout = setTimeout(() => {
+            let iteration = 0;
             interval = setInterval(() => {
                 setDisplayedText(() =>
                     text
@@ -31,7 +37,7 @@ const ScrambleText = ({
                                 return text[index]; // Revealed correctly
                             }
 
-                            return chars[Math.floor(Math.random() * chars.length)]; // Random char
+                            return CHARS[Math.floor(Math.random() * CHARS.length)]; // Random char
                         })
                         .join("")
                 );
@@ -41,14 +47,14 @@ const ScrambleText = ({
                     setDisplayedText(text); // Ensure final text is exact
                 }
 
-                iteration += 1 / 2; // Reveal 1 character every 2 frames
+                iteration += 1; // Reveal 1 character every frame for faster animation
             }, scrambleSpeed);
 
         }, delay);
 
         return () => {
             clearTimeout(startTimeout);
-            clearInterval(interval);
+            if (interval) clearInterval(interval);
         };
     }, [text, delay, scrambleSpeed, start]);
 
@@ -60,4 +66,3 @@ const ScrambleText = ({
 };
 
 export default ScrambleText;
-
