@@ -405,6 +405,7 @@ def get_data(species, sensor_id):
 def health_check():
     return jsonify({"status": "ok", "time": datetime.utcnow().isoformat()})
 
-# ── Run ────────────────────────────────────────────────────────────────────────
+# ── Vercel Serverless Export ────────────────────────────────────────────────────
+# Vercel needs to see 'app' exposed at the module level.
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
