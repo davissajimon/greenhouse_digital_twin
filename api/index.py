@@ -36,7 +36,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # ── Config ──────────────────────────────────────────────────────────────────
 SECRET_KEY       = os.getenv("JWT_SECRET", "greensim-secret-change-in-prod")
 NTFY_BASE_URL    = "https://ntfy.sh"   # free public instance
-USERS_FILE       = os.path.join(os.path.dirname(__file__), "users.json")
+
+# Vercel serverless only allows writing to /tmp
+USERS_FILE       = "/tmp/users.json"
 
 # Alert cooldown: don't re-notify the same plant+condition within N seconds
 ALERT_COOLDOWN_SEC = 600  # 10 minutes
