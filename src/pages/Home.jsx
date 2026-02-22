@@ -6,7 +6,6 @@ import * as THREE from "three";
 import { ThreeTomato } from "../components/ThreeTomato";
 import { ThreeChilli } from "../components/ThreeChilli";
 import { ThreePea } from "../components/ThreePea";
-import { API_BASE_URL } from "../config";
 import { applyEdgeCorrections } from "../utils/SensorCorrelations";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
 import { useFetchSensorData } from "../hooks/useFetchSensorData";

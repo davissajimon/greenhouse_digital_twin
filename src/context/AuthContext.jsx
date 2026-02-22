@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-import { API_BASE_URL } from "../config";
+import { AUTH_API_URL } from "../config";
 
 const AuthContext = createContext(null);
 
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
             setLoading(false);
             return;
         }
-        fetch(`${API_BASE_URL}/auth/me`, {
+        fetch(`${AUTH_API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(r => r.ok ? r.json() : Promise.reject())
@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = useCallback(async (ntfyTopic, password) => {
-        const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        const res = await fetch(`${AUTH_API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ntfy_topic: ntfyTopic, password })
@@ -46,7 +46,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const register = useCallback(async (name, ntfyTopic, password) => {
-        const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        const res = await fetch(`${AUTH_API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, ntfy_topic: ntfyTopic, password })
@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const toggleAlerts = useCallback(async (enabled) => {
-        const res = await fetch(`${API_BASE_URL}/auth/toggle_alerts`, {
+        const res = await fetch(`${AUTH_API_URL}/auth/toggle_alerts`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { API_BASE_URL } from '../config';
+import { SENSOR_API_URL } from '../config';
 
 const POLL_INTERVAL = 3000;
 
@@ -17,7 +17,7 @@ export function useFetchSensorData(species, sensorId) {
         if (!species || !sensorId) return;
 
         try {
-            const res = await fetch(`${API_BASE_URL}/get_data/${species}/${sensorId}`, { signal });
+            const res = await fetch(`${SENSOR_API_URL}/get_data/${species}/${sensorId}`, { signal });
 
             if (!res.ok) {
                 if (res.status === 404) throw new Error("Sensor/Plant not found");
