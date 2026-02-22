@@ -37,6 +37,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 SECRET_KEY       = os.getenv("JWT_SECRET", "greensim-secret-change-in-prod")
 NTFY_BASE_URL    = "https://ntfy.sh"   # free public instance
 
+# The main site where users actually register (Auth API)
+AUTH_API_URL     = "https://greenhouse-digital-twin.onrender.com"
+
 # Vercel serverless only allows writing to /tmp
 USERS_FILE       = "/tmp/users.json"
 
@@ -211,6 +214,17 @@ def _maybe_send_alerts(species: str, condition: dict, sensor_id: str):
         return  # Still in cooldown
 
     users = _load_users()
+    
+    # Cross-API Sync: If we are the Sensor API, our local users.json is empty.
+    # We must fetch the registered users from the Auth API.
+    if not users:
+        try:
+            resp = requests.get(f"{AUTH_API_URL}/internal/users", timeout=5)
+            if resp.status_code == 200:
+                users = resp.json()
+        except Exception as e:
+            app.logger.warning(f"Could not fetch remote users for notifications: {e}")
+
     if not users:
         return
 
@@ -239,6 +253,11 @@ def _maybe_send_alerts(species: str, condition: dict, sensor_id: str):
         _alert_cooldown[cooldown_key] = now
 
 # ── Auth Endpoints ────────────────────────────────────────────────────────────
+
+@app.route("/internal/users", methods=["GET"])
+def get_internal_users():
+    """Allow the Sensor API to fetch the user list from the Auth API for notifications."""
+    return jsonify(_load_users())
 
 @app.route("/auth/register", methods=["POST"])
 def register():
