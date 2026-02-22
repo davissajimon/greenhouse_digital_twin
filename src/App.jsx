@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import "./App.css";
 import { DarkModeProvider } from "./context/DarkModeContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NatureLoader } from "./components/NatureLoader";
 import { PlantProgressBar } from "./components/PlantProgressBar";
 
@@ -9,8 +10,34 @@ const Home = React.lazy(() => import("./pages/Home"));
 const GeoSection = React.lazy(() => import("./pages/GeoSection"));
 const Simulator = React.lazy(() => import("./pages/Simulator"));
 const Footer = React.lazy(() => import("./components/Footer"));
+const Login = React.lazy(() => import("./pages/Login"));
 
-function App() {
+// ── Inner app — only rendered after auth is resolved ──────────────────────
+function MainApp() {
+  const { isAuthenticated, loading } = useAuth();
+
+  // While verifying JWT, show a minimal spinner
+  if (loading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#101827" }}>
+        <NatureLoader message="Authenticating…" />
+      </div>
+    );
+  }
+
+  // Not logged in → show Login page
+  if (!isAuthenticated) {
+    return (
+      <React.Suspense fallback={null}>
+        <Login />
+      </React.Suspense>
+    );
+  }
+
+  return <AuthenticatedApp />;
+}
+
+function AuthenticatedApp() {
   // Lifted geo weather state — shared between GeoSection and Simulator
   const [geoWeather, setGeoWeather] = useState(null);
 
@@ -49,7 +76,7 @@ function App() {
   const onSimulatorReady = useCallback(() => markReady("simulator"), [markReady]);
 
   return (
-    <DarkModeProvider>
+    <>
       <div className="cinematic-noise"></div>
 
       {/* ═══ GLOBAL LOADER — covers everything until all sections ready ═══ */}
@@ -107,8 +134,20 @@ function App() {
 
       {/* ═══ SCROLL PROGRESS PLANT ═══ */}
       {appReady && <PlantProgressBar scrollContainerId="scroll-root" />}
-    </DarkModeProvider>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <DarkModeProvider>
+        <MainApp />
+      </DarkModeProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
+
+
