@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
@@ -12,7 +11,6 @@ export default function Login() {
     const [error, setError] = useState("");
 
     const { login, register } = useAuth();
-    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,7 +23,7 @@ export default function Login() {
                 if (!name.trim()) { setError("Name is required"); setLoading(false); return; }
                 await register(name.trim(), ntfyTopic.trim(), password);
             }
-            navigate("/");
+            // Overlay will automatically close when AuthContext updates isAuthenticated to true
         } catch (err) {
             setError(err.message || "Something went wrong");
         } finally {

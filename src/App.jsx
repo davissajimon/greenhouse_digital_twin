@@ -16,6 +16,16 @@ const Login = React.lazy(() => import("./pages/Login"));
 function MainApp() {
   const { isAuthenticated, loading } = useAuth();
 
+  // Apply scroll lock when login screen is active
+  React.useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isAuthenticated, loading]);
+
   // While verifying JWT, show a minimal spinner
   if (loading) {
     return (
@@ -25,16 +35,19 @@ function MainApp() {
     );
   }
 
-  // Not logged in → show Login page
-  if (!isAuthenticated) {
-    return (
-      <React.Suspense fallback={null}>
-        <Login />
-      </React.Suspense>
-    );
-  }
+  return (
+    <>
+      {/* Show login OVERLAY if not authenticated */}
+      {!isAuthenticated && (
+        <React.Suspense fallback={null}>
+          <Login />
+        </React.Suspense>
+      )}
 
-  return <AuthenticatedApp />;
+      {/* Always render the main app behind it so everything loads */}
+      <AuthenticatedApp />
+    </>
+  );
 }
 
 function AuthenticatedApp() {
