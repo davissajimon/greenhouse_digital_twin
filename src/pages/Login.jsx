@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
 export default function Login() {
-    const [tab, setTab] = useState("login");  // "login" | "register"
+    const [tab, setTab] = useState("login"); // "login" | "register"
     const [name, setName] = useState("");
     const [ntfyTopic, setNtfyTopic] = useState("");
     const [password, setPassword] = useState("");
@@ -23,9 +23,8 @@ export default function Login() {
                 if (!name.trim()) { setError("Name is required"); setLoading(false); return; }
                 await register(name.trim(), ntfyTopic.trim(), password);
             }
-            // Overlay will automatically close when AuthContext updates isAuthenticated to true
         } catch (err) {
-            setError(err.message || "Something went wrong");
+            setError(err.message || "Authentication failed");
         } finally {
             setLoading(false);
         }
@@ -33,38 +32,36 @@ export default function Login() {
 
     const switchTab = (t) => { setTab(t); setError(""); setNtfyTopic(""); };
 
-    // Generate a random suffix for topic name suggestion
-    const suggestedTopic = `greensim-${Math.random().toString(36).slice(2, 7)}`;
-
     return (
         <div className="login-page">
-            <div className="login-card">
-                {/* Logo */}
+            {/* Animated Ambient Background Shapes */}
+            <div className="bg-shape shape-1"></div>
+            <div className="bg-shape shape-2"></div>
+            <div className="bg-shape shape-3"></div>
+
+            <div className="glass-panel">
                 <div className="login-logo">
                     <div className="login-logo-icon">🌱</div>
                     <h1>GreenSim</h1>
-                    <p>Digital Twin Greenhouse</p>
+                    <p>Digital Twin</p>
                 </div>
 
-                {/* Tabs */}
                 <div className="login-tabs">
-                    <button className={`login-tab ${tab === "login" ? "active" : ""}`} onClick={() => switchTab("login")}>
-                        Sign In
+                    <button type="button" className={`login-tab ${tab === "login" ? "active" : ""}`} onClick={() => switchTab("login")}>
+                        Login
                     </button>
-                    <button className={`login-tab ${tab === "register" ? "active" : ""}`} onClick={() => switchTab("register")}>
+                    <button type="button" className={`login-tab ${tab === "register" ? "active" : ""}`} onClick={() => switchTab("register")}>
                         Register
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="login-form">
                     {tab === "register" && (
-                        <div className="login-field">
-                            <label>Full Name</label>
+                        <div className="input-group">
+                            <span className="input-icon">👤</span>
                             <input
-                                className="login-input"
                                 type="text"
-                                placeholder="e.g. Davis Sajimon"
+                                placeholder="Full Name"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 required
@@ -72,50 +69,34 @@ export default function Login() {
                         </div>
                     )}
 
-                    <div className="login-field">
-                        <label>{tab === "register" ? "Your Alert Topic Name" : "Alert Topic Name"}</label>
+                    <div className="input-group">
+                        <span className="input-icon">🔔</span>
                         <input
-                            className="login-input"
                             type="text"
-                            placeholder={tab === "register" ? `e.g. ${suggestedTopic}` : "your-topic-name"}
+                            placeholder={tab === "register" ? "Topic Name (e.g. secret-xyz)" : "Topic Name"}
                             value={ntfyTopic}
                             onChange={e => setNtfyTopic(e.target.value.toLowerCase().replace(/\s+/g, "-"))}
                             required
                         />
-                        {tab === "register" && (
-                            <div className="login-hint">
-                                Make it unique and secret (e.g. <code>{suggestedTopic}</code>). You'll subscribe to this in the ntfy app to receive phone alerts.
-                            </div>
-                        )}
                     </div>
 
-                    <div className="login-field">
-                        <label>Password</label>
+                    <div className="input-group">
+                        <span className="input-icon">🔒</span>
                         <input
-                            className="login-input"
                             type="password"
-                            placeholder={tab === "register" ? "At least 6 characters" : "Your password"}
+                            placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             required
                         />
                     </div>
 
-                    <button className="login-btn" type="submit" disabled={loading}>
-                        {loading ? "Please wait…" : (tab === "login" ? "Sign In" : "Create Account")}
+                    <button className="login-submit-btn" type="submit" disabled={loading}>
+                        {loading ? "Processing..." : (tab === "login" ? "Enter System" : "Join Platform")}
                     </button>
 
-                    {error && <div className="login-error">⚠ {error}</div>}
+                    {error && <div className="error-message">{error}</div>}
                 </form>
-
-                {tab === "register" && (
-                    <div className="login-sms-notice">
-                        <span>📱</span>
-                        <span>
-                            Install the free <strong>ntfy</strong> app on your phone → subscribe to your topic name → receive instant plant health alerts for free.
-                        </span>
-                    </div>
-                )}
             </div>
         </div>
     );

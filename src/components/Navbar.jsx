@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import React from "react";
+// import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
 export default function MainNavbar({ visible = true }) {
-  const { user, logout, toggleAlerts } = useAuth();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  // const { user, logout, toggleAlerts } = useAuth();
+  // const [showUserMenu, setShowUserMenu] = useState(false);
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    setShowUserMenu(false);
+    // setShowUserMenu(false);
   };
 
   return (
@@ -29,7 +29,8 @@ export default function MainNavbar({ visible = true }) {
           <button className="nav-link" onClick={() => scrollTo("section-simulator")}>Lab</button>
         </div>
 
-        {/* Right – User */}
+        {/* Right – User (commented out) */}
+        {/*
         <div className="navbar-right">
           {user && (
             <div className="navbar-user-wrap">
@@ -54,7 +55,7 @@ export default function MainNavbar({ visible = true }) {
 
                   <div className="navbar-dropdown-divider" />
 
-                  {/* SMS toggle */}
+                  {/* SMS toggle *}
                   <div className="navbar-sms-row">
                     <div>
                       <div className="navbar-sms-label">SMS Alerts</div>
@@ -81,6 +82,8 @@ export default function MainNavbar({ visible = true }) {
             </div>
           )}
         </div>
+        */}
+        <div className="navbar-right"></div>
 
       </div>
     </nav>

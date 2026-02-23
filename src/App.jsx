@@ -10,11 +10,32 @@ const Home = React.lazy(() => import("./pages/Home"));
 const GeoSection = React.lazy(() => import("./pages/GeoSection"));
 const Simulator = React.lazy(() => import("./pages/Simulator"));
 const Footer = React.lazy(() => import("./components/Footer"));
-const Login = React.lazy(() => import("./pages/Login"));
+// const Login = React.lazy(() => import("./pages/Login"));
 
 // ── Inner app — only rendered after auth is resolved ──────────────────────
 function MainApp() {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading } = useAuth();
+
+  /*
+  // Test notification every 30 seconds
+  React.useEffect(() => {
+    if (isAuthenticated && user?.ntfy_topic) {
+      const topic = user.ntfy_topic;
+      const interval = setInterval(() => {
+        fetch(`https://ntfy.sh/${topic}`, {
+          method: 'POST',
+          headers: {
+            'Title': 'Test Alert - GreenSim',
+            'Tags': 'test_tube,seedling',
+            'Priority': '3'
+          },
+          body: `Test notification at ${new Date().toLocaleTimeString()} (Testing active condition)`
+        }).then(res => console.log('Test ntfy sent:', res.status))
+          .catch(err => console.error('Test ntfy failed:', err));
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, user]);
 
   // Apply scroll lock when login screen is active
   React.useEffect(() => {
@@ -25,6 +46,7 @@ function MainApp() {
     }
     return () => { document.body.style.overflow = ""; };
   }, [isAuthenticated, loading]);
+  */
 
   // While verifying JWT, show a minimal spinner
   if (loading) {
@@ -37,12 +59,13 @@ function MainApp() {
 
   return (
     <>
-      {/* Show login OVERLAY if not authenticated */}
+      {/* Show login OVERLAY if not authenticated (commented out) 
       {!isAuthenticated && (
         <React.Suspense fallback={null}>
           <Login />
         </React.Suspense>
       )}
+      */}
 
       {/* Always render the main app behind it so everything loads */}
       <AuthenticatedApp />
