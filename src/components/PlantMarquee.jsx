@@ -5,7 +5,7 @@ import './PlantMarquee.css';
 const PLANTS = [
     { id: 'tomato', name: 'Tomato', color: '#ff6b6b' },
     { id: 'chilli', name: 'Chilli', color: '#ffb142' },
-    { id: 'okra', name: 'Okra (Coming Soon..)', color: '#2ed573' },
+    { id: 'okra', name: 'Okra', color: '#2ed573' },
 ];
 
 export function PlantMarquee() {
@@ -41,26 +41,6 @@ export function PlantMarquee() {
                                         {/* Cap / Stem */}
                                         <path d="M46 8 L 46 2 L 54 2 L 54 8" fill="#558B2F" stroke="#33691E" strokeWidth="1" />
                                     </svg>
-                                )}
-                                {p.id === 'okra' && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        background: 'rgba(0,0,0,0.8)',
-                                        color: '#fff',
-                                        fontSize: '0.6rem',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontWeight: 'bold',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.5px',
-                                        whiteSpace: 'nowrap',
-                                        top: '50%',
-                                        left: '50%',
-                                        transform: 'translate(-50%, -50%)',
-                                        pointerEvents: 'none'
-                                    }}>
-                                        Coming soon..
-                                    </div>
                                 )}
                             </span>
                         </div>

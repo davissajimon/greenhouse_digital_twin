@@ -196,23 +196,19 @@ export function ThreePea({ data, onLoad }) {
 
     return (
         <group>
-            <Center top>
-                <group scale={healthState.id === CONDITIONS.COLD_STRESS ? 1.2 : 1.5} position={[0, 3.25, -5]}>
-                    <primitive object={clone} />
-                </group>
-            </Center>
-            <Html center position={[0, 4, 0]} style={{ pointerEvents: 'none', zIndex: 0 }}>
+            <Html center position={[0, 1.5, 0]} style={{ pointerEvents: 'none', zIndex: 0 }}>
                 <div style={{
                     background: 'rgba(0,0,0,0.8)',
-                    color: '#fff',
-                    padding: '8px 16px',
+                    color: '#2ed573',
+                    padding: '12px 24px',
                     borderRadius: '8px',
-                    border: '1px solid #444',
-                    fontSize: '14px',
+                    border: '1px solid #2ed573',
+                    boxShadow: '0 0 15px rgba(46, 213, 115, 0.4)',
+                    fontSize: '16px',
                     fontWeight: 'bold',
                     whiteSpace: 'nowrap',
                     textTransform: 'uppercase',
-                    letterSpacing: '1px'
+                    letterSpacing: '2px'
                 }}>
                     Coming Soon..
                 </div>
