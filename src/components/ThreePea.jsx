@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useGLTF, Center, Detailed } from '@react-three/drei';
+import { useGLTF, Center, Detailed, Html } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 // Enable Draco compression support
@@ -201,6 +201,22 @@ export function ThreePea({ data, onLoad }) {
                     <primitive object={clone} />
                 </group>
             </Center>
+            <Html center position={[0, 4, 0]} style={{ pointerEvents: 'none', zIndex: 0 }}>
+                <div style={{
+                    background: 'rgba(0,0,0,0.8)',
+                    color: '#fff',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #444',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                }}>
+                    Coming Soon..
+                </div>
+            </Html>
         </group>
     );
 }
