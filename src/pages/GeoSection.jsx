@@ -1,6 +1,8 @@
 import React, { Suspense, useCallback, useRef, useState, lazy } from "react";
 import { fetchWeather, getWeatherIconUrl } from "../modules/weather/weatherService";
 import { getWeatherImpactSummary } from "../modules/simulator/geoSimulatorBridge";
+import { ForecastStrip } from "../components/ForecastStrip";
+import { CropViabilityPanel } from "../components/CropViabilityPanel";
 import "./GeoSection.css";
 
 const GlobeView = lazy(() => import("../modules/globe/GlobeView"));
@@ -9,17 +11,55 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
     const [selectedCoords, setSelectedCoords] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [forecastData, setForecastData] = useState([]);
     const abortRef = useRef(null);
 
     const handleLocationSelect = useCallback(async ({ lat, lon }) => {
         setSelectedCoords({ lat, lon });
         setLoading(true);
         setError(null);
+        setForecastData([]);
+        
         if (abortRef.current) abortRef.current.abort();
         const ctrl = new AbortController();
         abortRef.current = ctrl;
+        
         try {
             const wd = await fetchWeather(lat, lon, ctrl.signal);
+            
+            // Fetch 5-day forecast
+            try {
+                const OWM_API_KEY = import.meta.env.VITE_OWM_API_KEY || '4d8fb5b93d4af21d66a2948710284366';
+                const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_API_KEY}`;
+                const res = await fetch(forecastUrl, { signal: ctrl.signal });
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Group by day, take 12:00:00 entry or middle entry
+                    const dailyMap = new Map();
+                    data.list.forEach(item => {
+                        const date = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
+                        if (!dailyMap.has(date) || item.dt_txt.includes("12:00:00")) {
+                            dailyMap.set(date, {
+                                date,
+                                temp: item.main.temp,
+                                humidity: item.main.humidity,
+                                condition: item.weather[0].main,
+                                icon: item.weather[0].icon,
+                                cloudCover: item.clouds.all
+                            });
+                        }
+                    });
+                    
+                    // Get next 3 entries (excluding today if possible, or just exact 3 days)
+                    const forecastArray = Array.from(dailyMap.values()).slice(0, 3);
+                    setForecastData(forecastArray);
+                }
+            } catch (err) {
+                console.warn('Forecast fetch failed:', err);
+                // Non-fatal, just ignore
+            }
+
             setLoading(false);
             if (onWeatherUpdate) onWeatherUpdate(wd);
         } catch (err) {
@@ -92,6 +132,14 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
                             {getWeatherImpactSummary(geoWeather)}
                         </div>
                     </div>
+                )}
+                
+                {geoWeather && !loading && forecastData.length > 0 && (
+                    <ForecastStrip forecastData={forecastData} activePlant="tomato" />
+                )}
+
+                {geoWeather && !loading && (
+                    <CropViabilityPanel geoWeather={geoWeather} />
                 )}
 
                 {selectedCoords && (

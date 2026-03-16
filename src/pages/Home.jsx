@@ -174,32 +174,74 @@ function CameraController({ viewMode, activePlantConfig, userInteractingRef }) {
   return null;
 }
 
-const HologramData = ({ data, title, health }) => (
-  <div className="hologram-panel" style={{ borderColor: health?.color || '#2E8B57' }}>
-    <div className="holo-header">{title}</div>
-    <div className="holo-grid">
-      <div className="holo-item">
-        <span className="holo-label">AIR TEMP</span>
-        <span className="holo-value">{data?.temperature || 24}<small>°C</small></span>
+const HologramData = ({ data, title, health }) => {
+  const [speaking, setSpeaking] = useState(false);
+
+  const handleSpeak = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const plantNames = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Okra' };
+      const name = plantNames[title.toLowerCase()] || title;
+      const healthLabel = health?.label || 'optimal';
+      const tip = health?.tip || 'Continue standard monitoring.';
+      const temp = data?.temperature ?? '–';
+      const hum = data?.humidity ?? '–';
+      const sm = data?.soil_moisture ?? '–';
+      
+      const script = `I am your ${name} plant. My current health status is ${healthLabel}. My air temperature is ${temp} degrees Celsius. Humidity is at ${hum} percent. Soil moisture is at ${sm} percent. ${tip}`;
+      
+      const utterance = new SpeechSynthesisUtterance(script);
+      utterance.rate = 0.85;
+      utterance.pitch = 0.9;
+      utterance.volume = 0.9;
+      
+      const voices = window.speechSynthesis.getVoices();
+      const femaleEnglish = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'));
+      if (femaleEnglish) utterance.voice = femaleEnglish;
+      else {
+        const anyEnglish = voices.find(v => v.lang.startsWith('en'));
+        if (anyEnglish) utterance.voice = anyEnglish;
+      }
+      
+      utterance.onstart = () => setSpeaking(true);
+      utterance.onend = () => setSpeaking(false);
+      utterance.onerror = () => setSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  return (
+    <div className="hologram-panel" style={{ borderColor: health?.color || '#2E8B57' }}>
+      <div className="holo-header">{title}</div>
+      <div className="holo-grid">
+        <div className="holo-item">
+          <span className="holo-label">AIR TEMP</span>
+          <span className="holo-value">{data?.temperature || 24}<small>°C</small></span>
+        </div>
+        <div className="holo-item">
+          <span className="holo-label">HUMIDITY</span>
+          <span className="holo-value">{data?.humidity || 60}<small>%</small></span>
+        </div>
+        <div className="holo-item">
+          <span className="holo-label">SOIL MOIST</span>
+          <span className="holo-value">{data?.soil_moisture || 45}<small>%</small></span>
+        </div>
+        <div className="holo-item">
+          <span className="holo-label">SOIL TEMP</span>
+          <span className="holo-value">{data?.soil_temperature || 20}<small>°C</small></span>
+        </div>
       </div>
-      <div className="holo-item">
-        <span className="holo-label">HUMIDITY</span>
-        <span className="holo-value">{data?.humidity || 60}<small>%</small></span>
+      <div className="holo-footer" style={{ color: health?.color || '#2E8B57' }}>
+        STATUS: {health?.label.toUpperCase() || 'OPTIMAL'}
       </div>
-      <div className="holo-item">
-        <span className="holo-label">SOIL MOIST</span>
-        <span className="holo-value">{data?.soil_moisture || 45}<small>%</small></span>
-      </div>
-      <div className="holo-item">
-        <span className="holo-label">SOIL TEMP</span>
-        <span className="holo-value">{data?.soil_temperature || 20}<small>°C</small></span>
-      </div>
+      <button className={`holo-speak-btn ${speaking ? 'speaking' : ''}`} onClick={handleSpeak}>
+        {speaking ? '🔇 SPEAKING...' : '🔊 SPEAK'}
+      </button>
     </div>
-    <div className="holo-footer" style={{ color: health?.color || '#2E8B57' }}>
-      STATUS: {health?.label.toUpperCase() || 'OPTIMAL'}
-    </div>
-  </div>
-);
+  );
+};
 
 function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorId, onDataUpdate }) {
   const [hovered, setHovered] = useState(false);

@@ -4,6 +4,7 @@ import { DarkModeProvider } from "./context/DarkModeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NatureLoader } from "./components/NatureLoader";
 import { PlantProgressBar } from "./components/PlantProgressBar";
+import { AmbientMusic } from "./components/AmbientMusic";
 
 // Lazy load all major components for better code splitting
 const Home = React.lazy(() => import("./pages/Home"));
@@ -170,6 +171,7 @@ function AuthenticatedApp() {
 
       {/* ═══ SCROLL PROGRESS PLANT ═══ */}
       {appReady && <PlantProgressBar scrollContainerId="scroll-root" />}
+      {appReady && <AmbientMusic />}
     </>
   );
 }

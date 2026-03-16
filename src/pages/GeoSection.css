@@ -351,4 +351,94 @@
     .geo-globe-area {
         height: 45vh;
     }
+
+    .crop-viability-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ═══ Crop Viability Panel ═══ */
+.crop-viability-panel {
+    background: rgba(8, 12, 28, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: geoCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin-top: 16px;
+    width: 100%;
+}
+
+.crop-viability-header {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.crop-viability-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+}
+
+.crop-viability-card {
+    background: rgba(8, 12, 28, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.crop-emoji {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+}
+
+.crop-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2px;
+}
+
+.crop-badge {
+    font-size: 0.45rem;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    margin-bottom: 4px;
+}
+
+.crop-verdict {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: auto; /* push to bottom if heights differ */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.verdict-icon {
+    font-weight: 700;
+    font-size: 0.7rem;
 }

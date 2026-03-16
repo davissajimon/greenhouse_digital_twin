@@ -1,0 +1,39 @@
+.ambient-music-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(8, 12, 28, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.2rem;
+  z-index: 200;
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.ambient-music-btn.muted {
+  opacity: 0.6;
+}
+
+.ambient-music-btn:hover {
+  border-color: rgba(56, 189, 248, 0.5); /* --c-accent */
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .ambient-music-btn {
+    bottom: 70px;
+    right: 16px;
+  }
+}
