@@ -46,7 +46,7 @@ class ErrorBoundary extends React.Component {
 
 /* ── Grow Recommendation ── */
 function getGrowRecommendation(plantType, healthStatus, geoWeather) {
-  const names = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Okra' };
+  const names = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Begonia' };
   const name = names[plantType] || plantType;
   if (!geoWeather) return { type: 'info', emoji: 'ℹ️', title: 'No Location Data', message: `Scroll up to the globe to select a location and analyze growing conditions for ${name}.` };
   const city = geoWeather.cityName || 'Selected location';
@@ -192,6 +192,7 @@ export default function Simulator({ geoWeather, onReady }) {
           <span>{healthStatus.label}</span>
         </div>
       )}
+
 
       {/* ═══ GEO LOCATION TAG (top-left — shows current location) ═══ */}
       {storeGeoWeather && !isLoading && introFinished && (

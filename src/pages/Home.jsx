@@ -115,7 +115,7 @@ function Greenhouse({ viewMode }) {
 const PLANTS = [
   { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -4.5, focusZ: 4.5, focusY: 1.0 },
   { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 1.2 }, // Central hero plant
-  { id: 'okra', name: 'Okra', Component: ThreePea, xPos: 4.5, focusZ: 4.5, focusY: 1.0 }
+  { id: 'okra', name: 'Begonia', Component: ThreePea, xPos: 4.5, focusZ: 4.5, focusY: 1.0 }
 ];
 
 // --- 3D COMPONENTS ---
@@ -181,7 +181,7 @@ const HologramData = ({ data, title, health }) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const plantNames = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Okra' };
+      const plantNames = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Begonia' };
       const name = plantNames[title.toLowerCase()] || title;
       const healthLabel = health?.label || 'optimal';
       const tip = health?.tip || 'Continue standard monitoring.';

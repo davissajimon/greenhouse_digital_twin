@@ -2,7 +2,6 @@ import React, { Suspense, useCallback, useRef, useState, lazy } from "react";
 import { fetchWeather, getWeatherIconUrl } from "../modules/weather/weatherService";
 import { getWeatherImpactSummary } from "../modules/simulator/geoSimulatorBridge";
 import { ForecastStrip } from "../components/ForecastStrip";
-import { CropViabilityPanel } from "../components/CropViabilityPanel";
 import "./GeoSection.css";
 
 const GlobeView = lazy(() => import("../modules/globe/GlobeView"));
@@ -19,23 +18,20 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
         setLoading(true);
         setError(null);
         setForecastData([]);
-        
+
         if (abortRef.current) abortRef.current.abort();
         const ctrl = new AbortController();
         abortRef.current = ctrl;
-        
+
         try {
             const wd = await fetchWeather(lat, lon, ctrl.signal);
-            
-            // Fetch 5-day forecast
+
             try {
                 const OWM_API_KEY = import.meta.env.VITE_OWM_API_KEY || '4d8fb5b93d4af21d66a2948710284366';
                 const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${OWM_API_KEY}`;
                 const res = await fetch(forecastUrl, { signal: ctrl.signal });
                 if (res.ok) {
                     const data = await res.json();
-                    
-                    // Group by day, take 12:00:00 entry or middle entry
                     const dailyMap = new Map();
                     data.list.forEach(item => {
                         const date = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
@@ -50,14 +46,10 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
                             });
                         }
                     });
-                    
-                    // Get next 3 entries (excluding today if possible, or just exact 3 days)
-                    const forecastArray = Array.from(dailyMap.values()).slice(0, 3);
-                    setForecastData(forecastArray);
+                    setForecastData(Array.from(dailyMap.values()).slice(0, 3));
                 }
             } catch (err) {
                 console.warn('Forecast fetch failed:', err);
-                // Non-fatal, just ignore
             }
 
             setLoading(false);
@@ -74,40 +66,41 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
+    const hasWeather = geoWeather && !loading;
+
     return (
         <div className="geo-section">
-            {/* ═══ Background Atmosphere ═══ */}
             <div className="geo-bg-gradient" />
 
-            {/* ═══ Left Content ═══ */}
-            <div className="geo-content">
+            {/* ═══ Left Content Panel ═══ */}
+            <div className={`geo-content ${hasWeather ? 'geo-content--active' : ''}`}>
+
+                {/* Header */}
                 <div className="geo-header">
                     <div className="geo-badge">GEOSIMULATION</div>
-                    <h1 className="geo-title">
-                        Where Do<br />You Live?
-                    </h1>
+                    <h1 className="geo-title">Where Do You Live?</h1>
                     <p className="geo-subtitle">
-                        Select your location on the globe to fetch real-time weather data.
-                        <br />
-                        We'll simulate how your plant handles those conditions.
+                        Click anywhere on the globe to fetch real-time weather data.
                     </p>
                 </div>
 
-                {/* ═══ Weather Result Card ═══ */}
+                {/* Loading */}
                 {loading && (
                     <div className="geo-weather-card loading-card">
                         <div className="geo-loading-spinner" />
-                        <span>Fetching weather data…</span>
+                        <span>Fetching weather…</span>
                     </div>
                 )}
 
+                {/* Error */}
                 {error && (
                     <div className="geo-weather-card error-card">
                         <span>⚠️ {error}</span>
                     </div>
                 )}
 
-                {geoWeather && !loading && (
+                {/* Weather Card */}
+                {hasWeather && (
                     <div className="geo-weather-card">
                         <div className="geo-weather-top">
                             <img
@@ -133,31 +126,23 @@ export default function GeoSection({ geoWeather, onWeatherUpdate, onReady }) {
                         </div>
                     </div>
                 )}
-                
-                {geoWeather && !loading && forecastData.length > 0 && (
+
+                {/* Forecast Strip */}
+                {hasWeather && forecastData.length > 0 && (
                     <ForecastStrip forecastData={forecastData} activePlant="tomato" />
                 )}
 
-                {geoWeather && !loading && (
-                    <CropViabilityPanel geoWeather={geoWeather} />
-                )}
-
-                {selectedCoords && (
-                    <div className="geo-coords">
-                        📍 {selectedCoords.lat.toFixed(4)}°, {selectedCoords.lon.toFixed(4)}°
-                    </div>
-                )}
-
-                {/* ═══ CTA Button ═══ */}
-                {geoWeather && !loading && (
+                {/* CTA */}
+                {hasWeather && (
                     <button className="geo-cta" onClick={scrollToSimulator}>
                         <span>Test Plant Survival</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="6 9 12 15 18 9" />
                         </svg>
                     </button>
                 )}
 
+                {/* Hint */}
                 {!selectedCoords && !loading && (
                     <div className="geo-hint">
                         <span>Click anywhere on the globe to begin</span>

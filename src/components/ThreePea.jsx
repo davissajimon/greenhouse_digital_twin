@@ -1,16 +1,15 @@
 import React, { useEffect, useMemo } from 'react';
-import { useGLTF, Center, Detailed, Html } from '@react-three/drei';
+import { useGLTF, Center, Detailed } from '@react-three/drei';
 import { evaluatePlantHealth, CONDITIONS } from '../utils/PlantHealthEngine';
 
 // Enable Draco compression support
 const draacoUrl = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
 
 // Preload
-useGLTF.preload('/okra2.glb', draacoUrl);
+useGLTF.preload('/begonia.glb', draacoUrl);
 
 export function ThreePea({ data, onLoad }) {
-    // Currently using healthy_tomato as placeholder per previous context
-    const { scene } = useGLTF('/okra2.glb', draacoUrl);
+    const { scene } = useGLTF('/begonia.glb', draacoUrl);
     const clone = useMemo(() => scene.clone(true), [scene]);
 
     useEffect(() => {
@@ -195,24 +194,12 @@ export function ThreePea({ data, onLoad }) {
     }, [clone, healthState]);
 
     return (
-        <group>
-            <Html center position={[0, 1.5, 0]} style={{ pointerEvents: 'none', zIndex: 0 }}>
-                <div style={{
-                    background: 'rgba(0,0,0,0.8)',
-                    color: '#2ed573',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    border: '1px solid #2ed573',
-                    boxShadow: '0 0 15px rgba(46, 213, 115, 0.4)',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    whiteSpace: 'nowrap',
-                    textTransform: 'uppercase',
-                    letterSpacing: '2px'
-                }}>
-                    Coming Soon..
-                </div>
-            </Html>
-        </group>
+        <Center>
+            <Detailed distances={[0, 8, 20]}>
+                <primitive object={clone} />
+                <primitive object={clone} />
+                <primitive object={clone} />
+            </Detailed>
+        </Center>
     );
 }

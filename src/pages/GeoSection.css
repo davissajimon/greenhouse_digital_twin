@@ -7,8 +7,7 @@
     width: 100%;
     height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
     background: radial-gradient(ellipse at 30% 50%, #0a1628 0%, #060e1a 60%, #020408 100%);
     overflow: hidden;
     font-family: var(--font-hero, 'Inter', sans-serif);
@@ -30,36 +29,59 @@
 .geo-content {
     position: relative;
     z-index: 10;
-    width: 40%;
-    max-width: 480px;
-    padding: 60px;
+    width: 36%;
+    max-width: 400px;
+    min-width: 280px;
+    padding: 0 36px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    /* smooth shift when weather loads */
+    transition: padding-top 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.geo-content::-webkit-scrollbar { display: none; }
+
+/* When weather is loaded — shift content up */
+.geo-content--active {
+    justify-content: flex-start;
+    padding-top: 8vh;
 }
 
+/* ═══ Header ═══ */
 .geo-header {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: 8px;
+    transition: margin-bottom 0.5s ease;
+}
+
+.geo-content--active .geo-header {
+    margin-bottom: 4px;
 }
 
 .geo-badge {
     font-family: var(--font-mono, 'Courier New', monospace);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: rgba(56, 189, 248, 0.9);
     letter-spacing: 0.22em;
     border-left: 2px solid rgba(56, 189, 248, 0.5);
-    padding-left: 12px;
+    padding-left: 10px;
     text-transform: uppercase;
     font-weight: 600;
 }
 
 .geo-title {
-    font-size: 3.2rem;
+    font-size: 2.2rem;
     font-weight: 800;
     line-height: 1.05;
     margin: 0;
+    white-space: nowrap;
     background: linear-gradient(to bottom, #ffffff 20%, #8899aa 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -68,12 +90,12 @@
 }
 
 .geo-subtitle {
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.5);
-    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.5;
     margin: 0;
-    max-width: 380px;
+    max-width: 300px;
 }
 
 /* ═══ Weather Card ═══ */
@@ -82,11 +104,12 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 14px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
+    width: 100%;
     animation: geoCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
@@ -106,26 +129,20 @@
 }
 
 @keyframes geoCardIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .geo-weather-top {
     display: flex;
     align-items: center;
-    gap: 14px;
+    justify-content: center;
+    gap: 12px;
 }
 
 .geo-weather-icon {
-    width: 54px;
-    height: 54px;
+    width: 44px;
+    height: 44px;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
 }
 
@@ -133,22 +150,23 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    text-align: left;
 }
 
 .geo-city {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
 }
 
 .geo-city small {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: rgba(255, 255, 255, 0.4);
-    margin-left: 6px;
+    margin-left: 5px;
     font-weight: 400;
 }
 
 .geo-temp {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
     font-family: var(--font-mono, 'Courier New', monospace);
     color: #38bdf8;
@@ -156,25 +174,21 @@
 
 .geo-weather-details {
     display: flex;
-    gap: 16px;
-    font-size: 0.82rem;
+    justify-content: center;
+    gap: 14px;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.55);
 }
 
 .geo-impact {
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.7);
-    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.65);
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
+    border-radius: 8px;
     border-left: 3px solid #38bdf8;
     line-height: 1.5;
-}
-
-.geo-coords {
-    font-family: var(--font-mono, 'Courier New', monospace);
-    font-size: 0.78rem;
-    color: rgba(56, 189, 248, 0.7);
+    text-align: left;
 }
 
 /* ═══ CTA Button ═══ */
@@ -182,15 +196,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    padding: 16px 28px;
+    padding: 13px 20px;
     background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
     border: 1px solid rgba(56, 189, 248, 0.25);
-    border-radius: 12px;
+    border-radius: 10px;
     color: #38bdf8;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -201,60 +215,27 @@
 .geo-cta:hover {
     background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
     border-color: rgba(56, 189, 248, 0.4);
-    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.15);
+    box-shadow: 0 6px 24px rgba(56, 189, 248, 0.15);
     transform: translateY(-2px);
-}
-
-.geo-cta svg {
-    animation: ctaBounce 2s ease-in-out infinite;
-}
-
-@keyframes ctaBounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(4px);
-    }
 }
 
 /* ═══ Hint ═══ */
 .geo-hint {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0;
-    background: none;
-    border: none;
-    border-radius: 0;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.4);
     animation: hintGlow 3s ease-in-out infinite;
-    width: fit-content;
 }
 
-
-
 @keyframes hintGlow {
-
-    0%,
-    100% {
-        opacity: 0.6;
-    }
-
-    50% {
-        opacity: 1;
-    }
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
 }
 
 /* ═══ Globe Area (Right Side) ═══ */
 .geo-globe-area {
     position: relative;
     z-index: 5;
-    width: 55%;
+    flex: 1;
     height: 100%;
     display: flex;
     align-items: center;
@@ -287,8 +268,8 @@
 }
 
 .geo-loading-spinner {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-top-color: #38bdf8;
     border-radius: 50%;
@@ -296,149 +277,34 @@
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 /* ═══ Responsive ═══ */
 @media (max-width: 1024px) {
-    .geo-section {
-        flex-direction: column;
-    }
+    .geo-section { flex-direction: column; }
 
     .geo-content {
         width: 100%;
         max-width: 100%;
-        padding: 40px 30px 20px;
-        text-align: center;
-        align-items: center;
+        min-width: unset;
+        height: auto;
+        padding: 32px 24px 16px;
+        justify-content: center;
     }
 
-    .geo-title {
-        font-size: 2.2rem;
+    .geo-content--active {
+        justify-content: center;
+        padding-top: 32px;
     }
 
-    .geo-subtitle {
-        max-width: 100%;
-    }
-
-    .geo-globe-area {
-        width: 100%;
-        height: 50vh;
-    }
-
-    .geo-hint {
-        margin: 0 auto;
-    }
+    .geo-title { font-size: 1.8rem; white-space: normal; }
+    .geo-globe-area { width: 100%; height: 45vh; }
 }
 
 @media (max-width: 600px) {
-    .geo-content {
-        padding: 30px 20px 10px;
-        gap: 16px;
-    }
-
-    .geo-title {
-        font-size: 1.8rem;
-    }
-
-    .geo-weather-details {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .geo-globe-area {
-        height: 45vh;
-    }
-
-    .crop-viability-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-/* ═══ Crop Viability Panel ═══ */
-.crop-viability-panel {
-    background: rgba(8, 12, 28, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    animation: geoCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    margin-top: 16px;
-    width: 100%;
-}
-
-.crop-viability-header {
-    font-size: 0.65rem;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.4);
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.crop-viability-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-}
-
-.crop-viability-card {
-    background: rgba(8, 12, 28, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 12px 10px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.crop-emoji {
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2px;
-}
-
-.crop-name {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 2px;
-}
-
-.crop-badge {
-    font-size: 0.45rem;
-    font-weight: 600;
-    padding: 3px 6px;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    margin-bottom: 4px;
-}
-
-.crop-verdict {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: auto; /* push to bottom if heights differ */
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.verdict-icon {
-    font-weight: 700;
-    font-size: 0.7rem;
+    .geo-content { padding: 24px 16px 12px; gap: 12px; }
+    .geo-title { font-size: 1.5rem; }
+    .geo-weather-details { flex-wrap: wrap; gap: 8px; }
+    .geo-globe-area { height: 40vh; }
 }
