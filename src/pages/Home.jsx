@@ -283,7 +283,7 @@ function PlantItem({ ItemConfig, index, isActive, isFocused, onClick, sensorId, 
 
       {/* Label Chip (Always visible unless focused) */}
       {!isFocused && (
-        <Html position={[0, 3.6, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+        <Html position={[0, 3.28 - (ItemConfig.yPos ?? -0.32), 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
           <div
             className="plant-label-chip"
             style={{
