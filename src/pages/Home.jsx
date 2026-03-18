@@ -115,7 +115,7 @@ function Greenhouse({ viewMode }) {
 const PLANTS = [
   { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -4.5, focusZ: 4.5, focusY: 1.0 },
   { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 1.2 }, // Central hero plant
-  { id: 'okra', name: 'Begonia', Component: ThreePea, xPos: 4.5, yPos: 1.68, focusZ: 4.5, focusY: 1.0 }
+  { id: 'okra', name: 'Begonia', Component: ThreePea, xPos: 4.5, yPos: 0.68, focusZ: 4.5, focusY: 1.0 }
 ];
 
 // --- 3D COMPONENTS ---
