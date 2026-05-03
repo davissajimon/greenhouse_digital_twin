@@ -18,8 +18,7 @@ export const CropViabilityPanel = React.memo(({ geoWeather }) => {
 
   const speciesList = [
     { id: 'tomato', name: 'Tomato' },
-    { id: 'chilli', name: 'Chilli' },
-    { id: 'okra', name: 'Begonia' }
+    { id: 'chilli', name: 'Chilli' }
   ];
 
   const results = speciesList.map(sp => {

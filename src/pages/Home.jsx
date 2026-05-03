@@ -5,7 +5,7 @@ import { Environment, Html, ContactShadows, useCursor, OrbitControls, Billboard,
 import * as THREE from "three";
 import { ThreeTomato } from "../components/ThreeTomato";
 import { ThreeChilli } from "../components/ThreeChilli";
-import { ThreePea } from "../components/ThreePea";
+
 import { applyEdgeCorrections } from "../utils/SensorCorrelations";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
 import { useFetchSensorData } from "../hooks/useFetchSensorData";
@@ -113,9 +113,8 @@ function Greenhouse({ viewMode }) {
 
 // --- CONFIG ---
 const PLANTS = [
-  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -4.5, focusZ: 4.5, focusY: 1.0 },
-  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 0, focusZ: 5.5, focusY: 1.2 }, // Central hero plant
-  { id: 'okra', name: 'Begonia', Component: ThreePea, xPos: 4.5, yPos: 0.68, focusZ: 4.5, focusY: 1.0 }
+  { id: 'chilli', name: 'Chilli', Component: ThreeChilli, xPos: -3.5, focusZ: 4.5, focusY: 1.0 },
+  { id: 'tomato', name: 'Tomato', Component: ThreeTomato, xPos: 3.5, focusZ: 5.5, focusY: 1.2 }
 ];
 
 // --- 3D COMPONENTS ---
@@ -181,7 +180,7 @@ const HologramData = ({ data, title, health }) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       
-      const plantNames = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Begonia' };
+      const plantNames = { tomato: 'Tomato', chilli: 'Chilli' };
       const name = plantNames[title.toLowerCase()] || title;
       const healthLabel = health?.label || 'optimal';
       const tip = health?.tip || 'Continue standard monitoring.';
@@ -463,15 +462,14 @@ export default function Home({ onReady, startAnimation = true }) {
       onReady();
     }
   }, [onReady]);
-  const [activeIndex, setActiveIndex] = useState(1);
+  const [activeIndex, setActiveIndex] = useState(0);
   const userInteracting = useRef(false);
   const [viewMode, setViewMode] = useState('overview');
 
   // Independent sensor mapping: plant.id -> sensorId
   const [sensorMap, setSensorMap] = useState({
     tomato: "1",
-    chilli: "2",
-    okra: "3"
+    chilli: "2"
   });
 
   // Data from the currently ACTIVE plant (for Sidebar display)

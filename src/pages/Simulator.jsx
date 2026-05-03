@@ -6,7 +6,7 @@ import { Vector3, DoubleSide } from "three";
 import { NatureLoader } from "../components/NatureLoader";
 import { ThreeTomato } from "../components/ThreeTomato";
 import { ThreeChilli } from "../components/ThreeChilli";
-import { ThreePea } from "../components/ThreePea";
+
 import { PlantMarquee } from "../components/PlantMarquee";
 import { evaluatePlantHealth } from "../utils/PlantHealthEngine";
 import { useSimulatorStore } from "../store/useSimulatorStore";
@@ -46,7 +46,7 @@ class ErrorBoundary extends React.Component {
 
 /* ── Grow Recommendation ── */
 function getGrowRecommendation(plantType, healthStatus, geoWeather) {
-  const names = { tomato: 'Tomato', chilli: 'Chilli', okra: 'Begonia' };
+  const names = { tomato: 'Tomato', chilli: 'Chilli' };
   const name = names[plantType] || plantType;
   if (!geoWeather) return { type: 'info', emoji: 'ℹ️', title: 'No Location Data', message: `Scroll up to the globe to select a location and analyze growing conditions for ${name}.` };
   const city = geoWeather.cityName || 'Selected location';
@@ -152,7 +152,6 @@ export default function Simulator({ geoWeather, onReady }) {
                 <group position={[0, -1.2, 0]} scale={[1.4, 1.4, 1.4]}>
                   {plant === "tomato" && <ThreeTomato data={controls} onLoad={handleModelLoad} />}
                   {plant === "chilli" && <ThreeChilli data={controls} onLoad={handleModelLoad} />}
-                  {plant === "okra" && <ThreePea data={controls} onLoad={handleModelLoad} />}
                 </group>
 
                 {/* Invisible click target over model */}

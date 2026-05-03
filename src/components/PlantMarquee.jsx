@@ -5,7 +5,6 @@ import './PlantMarquee.css';
 const PLANTS = [
     { id: 'tomato', name: 'Tomato', color: '#ff6b6b' },
     { id: 'chilli', name: 'Chilli', color: '#ffb142' },
-    { id: 'okra', name: 'Begonia', color: '#c084fc' },
 ];
 
 export function PlantMarquee() {
@@ -26,7 +25,6 @@ export function PlantMarquee() {
                             <span style={{ fontSize: '2rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {p.id === 'tomato' && '🍅'}
                                 {p.id === 'chilli' && '🌶️'}
-                                {p.id === 'okra' && '🌸'}
                             </span>
                         </div>
                     </div>

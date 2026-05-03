@@ -3,7 +3,7 @@
  * 
  * Implements strict agronomic logic for Digital Twin Greenhouse.
  * Enforces 10 distinct, non-overlapping simulator states.
- * Replaces Pea with Lady's Finger (Okra).
+ * Supports Tomato and Chilli species.
  */
 
 export const CONDITIONS = {
@@ -48,14 +48,6 @@ const SPECIES_CONFIG = {
         optSoilTemp: [15, 30], // Standard warm soil
         coldLimit: 12,
         heatLimit: 35
-    },
-    okra: { // Lady's Finger
-        optTemp: [24, 30],
-        optRH: [60, 75],
-        optSoilTemp: [20, 30], // Likes warm soil
-        coldLimit: 15, // Very sensitive
-        heatLimit: 40, // Tolerates heat
-        frostLimit: 5  // Critical fail
     }
 };
 
@@ -178,7 +170,7 @@ export function evaluatePlantHealth(data) {
 
     // Check against species verification for "Optimal" vs "Sub-optimal" that isn't a crisis
     // If we passed all critical checks, we are broadly "Normal", but let's check optimization
-    const config = SPECIES_CONFIG[species === 'pea' ? 'okra' : species] || SPECIES_CONFIG.tomato; // Map pea to okra if legacy passed
+    const config = SPECIES_CONFIG[species] || SPECIES_CONFIG.tomato;
 
     // If slightly outside optimal but not critical
     if (t < config.optTemp[0] || t > config.optTemp[1] || rh < config.optRH[0] || rh > config.optRH[1]) {
